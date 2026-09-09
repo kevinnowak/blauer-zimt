@@ -11,7 +11,7 @@ The living roadmap: where the project is and what happens next. Decision
 
 | Milestone | State |
 |---|---|
-| **0 — Architecture and repository foundation** | ✅ Complete (2026-09-09) — uncommitted |
+| **0 — Architecture and repository foundation** | ✅ Complete (2026-09-09) |
 | **1 — Minimal Cinnamon system** | ▶ Next |
 | 2 — Complete desktop foundation | Not started |
 | 3 — OCI publishing | Not started |
@@ -38,7 +38,7 @@ Completed 2026-09-09.
 - [x] VM boots through UEFI and logs in
 - [x] `bootc status` reports a valid deployment
 - [x] `README.md`, `PLAN.md` and ADR 0001 written
-- [ ] Commit the foundation to git
+- [x] Commit the foundation to git
 
 ## Image hierarchy
 

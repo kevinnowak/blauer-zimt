@@ -6,6 +6,9 @@ tag   := "44"
 default:
     @just --list
 
+# Rebuild the image, regenerate the disk, and boot it
+cycle: build build-qcow2 run-vm
+
 # Build the OCI image (bootc container lint runs as the final layer)
 build:
     sudo podman build -t {{image}}:{{tag}} .
