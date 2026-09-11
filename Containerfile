@@ -33,13 +33,16 @@ RUN dnf -y install \
         mesa-dri-drivers \
         sway sway-config-upstream sway-systemd foot wmenu \
         greetd greetd-selinux tuigreet \
+        pipewire pipewire-pulseaudio pipewire-alsa pipewire-utils wireplumber \
+        alsa-ucm alsa-utils pavucontrol pulseaudio-utils \
+        xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk grim slurp \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
 # greetd on VT1, tuigreet as the greeter. Copied after the install on purpose:
 # rpm treats a config file that already exists as a local edit and sets it
 # aside as config.toml.rpmorig, installing its own default over it.
-COPY system_files/etc/greetd/config.toml /etc/greetd/config.toml
+COPY system_files/ /
 # greetd's [Install] is Alias=display-manager.service, which graphical.target
 # Wants=. No target to hook into, no set-default: the base already boots there.
 RUN systemctl enable greetd.service

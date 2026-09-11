@@ -220,36 +220,95 @@ Known pitfalls, so they are not rediscovered:
 
 ## Milestone 2 — Complete desktop foundation ▶
 
-Loop hygiene first, two Justfile one-liners left over from Milestone 1:
+Loop hygiene first, two Justfile one-liners left over from Milestone 1 — done
+2026-09-11, commit `7e18398`:
 
-- [ ] `build-qcow2` ends with `cp /usr/share/OVMF/OVMF_VARS_4M.fd output/OVMF_VARS.fd`
+- [x] `build-qcow2` ends with `cp /usr/share/OVMF/OVMF_VARS_4M.fd output/OVMF_VARS.fd`
       — a new disk gets fresh NVRAM, so no more UEFI shell after a rebuild.
-- [ ] The `run-vm` comment no longer says "headless": it opens a window, and the
+- [x] The `run-vm` comment no longer says "headless": it opens a window, and the
       serial console in the terminal is for debugging.
 
 Sway is a compositor; everything a desktop environment would have bundled is a
-separate decision here. Start by reading the SIG's checklist —
-`dnf group info swaywm swaywm-extended` — for anything the list below misses.
-Each item is then added one at a time, with its own verification, in roughly
-this order:
+separate decision here.
 
-- **Portals** — `xdg-desktop-portal`, `-wlr` (screenshot, screencast) and `-gtk`
-  (file chooser, settings). Check whether `-wlr` ships `sway-portals.conf`; portal
-  selection depends on `XDG_CURRENT_DESKTOP=sway` reaching the user session.
-- **Audio** — PipeWire, WirePlumber, `pipewire-pulseaudio`; `pavucontrol` for a
-  mixer, `pulseaudio-utils` for the `pactl` calls in upstream's media-key bindings. VM verification needs `-audiodev` and an HDA device in `run-vm`.
-- **Networking** — NetworkManager (+ `-wifi`, `-tui`); decide `nm-applet` versus
-  `nmtui` only.
-- **Bluetooth** — BlueZ; front-end decision deferred (ADR 0002).
-- **File manager** — Thunar with gvfs, tumbler, `thunar-volman`, `udisks2`.
-  Removable media is the test: attach a USB-storage drive to the VM and mount it.
-- **Polkit agent** — empirical: verify which of `xfce-polkit`, `mate-polkit`,
-  `lxqt-policykit` are packaged; pick one.
-- **Notifications** — `mako`.
-- **Lock and idle** — `swaylock`, `swayidle`; PAM for swaylock comes with the package.
+**Step 0 — the SIG's checklist, read 2026-09-11** (`dnf group info swaywm
+swaywm-extended`). `swaywm`: mandatory `sway swaybg swayidle swaylock`; default
+`dunst foot grim polkit slurp tuned-ppd tuned-switcher waybar xdg-desktop-portal-wlr
+xorg-x11-server-Xwayland`. `swaywm-extended`: mandatory `sway-config-fedora`;
+default Thunar + gvfs + gvfs-smb + thunar-archive-plugin + xarchiver, blueman,
+kanshi, wlr-randr, wl-clipboard, network-manager-applet + six NetworkManager VPN
+plugins, pavucontrol, pulseaudio-utils, playerctl, lxqt-policykit,
+gnome-keyring-pam, pinentry-gnome3, system-config-printer, sddm +
+sddm-wayland-sway, bolt, fprintd-pam, git-core, imv, mpv, wev, wlsunset,
+xdg-desktop-portal-gtk. Neither group carries PipeWire, Wi-Fi, BlueZ, CUPS, fonts
+or Flatpak — the spin takes those from Fedora's generic groups, so at each
+generic component below the matching group (`multimedia`,
+`networkmanager-submodules`, `printing`, `fonts`, `hardware-support`) is the
+checklist. Rejected from their list: `sway-config-fedora`, SDDM (ADR 0002),
+`waybar` (upstream's bar is swaybar). Deferred: `bolt`, `fprintd-pam` (laptop
+hardware, M9), `imv`, `mpv` (applications, M5), `git-core` (DX).
+
+Each item is added one at a time, with its own verification, in this order —
+audio before portals, because the portal's screencast runs over PipeWire:
+
+- ✅ **Audio** — done 2026-09-11. Verified in the VM: `wpctl status` lists the HDA
+  codec as sink and source, `pactl info` reports `PulseAudio (on PipeWire 1.6.8)`
+  with `alsa_output.pci-0000_00_04.0.analog-stereo` as default sink, and
+  `speaker-test` was audible on the host. Queried first: `pipewire` hard-requires `rtkit` and the
+  virtual `pipewire-session-manager` (name `wireplumber` explicitly, as with
+  `sway-config`); it recommends only the libcamera plugin. User units:
+  `pipewire.socket` (pipewire), `pipewire-pulse.socket` (`pipewire-pulseaudio`),
+  `wireplumber.service` (`WantedBy=pipewire.service`); Fedora's
+  `90-default-user.preset` enables all three, applied at install by
+  `systemctl --global preset` → symlinks under `/etc/systemd/user/`. Set:
+  `pipewire pipewire-pulseaudio pipewire-alsa pipewire-utils wireplumber alsa-ucm
+  alsa-utils pavucontrol pulseaudio-utils` (check whether pavucontrol pulls GTK 4).
+  The `multimedia` group's remainder is GStreamer codecs (codec ADR), AirPlay,
+  PackageKit and an Intel VA driver — not taken. VM: `-audiodev pa,id=snd0
+  -device ich9-intel-hda -device hda-duplex,audiodev=snd0`. Verify: preset
+  symlinks at build time; `wpctl status`, `pactl info`, `speaker-test` in the VM.
+- ✅ **Portals** — done 2026-09-11. Verified in the VM: `busctl --user introspect`
+  lists FileChooser, ScreenCast, Screenshot and Settings; `ScreenCast.AvailableSourceTypes`
+  = 1; all three portal services D-Bus-activated by the first call. Versions:
+  xdg-desktop-portal 1.22.1, -wlr 0.8.4, -gtk 1.15.3. `session.sh:39` is an
+  unconditional `export XDG_CURRENT_DESKTOP=sway` — confirmed in the source.
+  Queried first: `xdg-desktop-portal` hard-requires `geoclue2`
+  (Location) and `fuse3` (document portal); `-wlr` hard-requires `grim` and
+  recommends `(slurp or wofi or bemenu)` for its screencast picker; `-gtk`
+  requires `gsettings-desktop-schemas`. All three are D-Bus-activated user
+  services, started by the first client. Backend selection needs a
+  `<desktop>-portals.conf`; Fedora ships `wlroots-portals.conf`, but it routes
+  Settings to `darkman` (not shipped) and the user manager's
+  `XDG_CURRENT_DESKTOP` is `sway` (Sway's own process carries `sway:wlroots` —
+  `sway-systemd` rewrites it; confirm with a grep of `session.sh`). Legacy
+  `UseIn=gnome` in `gtk.portal` means no config = no file chooser. Decision:
+  ship `system_files/usr/share/xdg-desktop-portal/sway-portals.conf` —
+  `default=gtk`, Screenshot and ScreenCast to `wlr`, Settings stays with gtk
+  (gsettings-driven). Set: `xdg-desktop-portal xdg-desktop-portal-wlr
+  xdg-desktop-portal-gtk grim slurp`; `COPY system_files/ /` replaces the
+  single-file copy. Verify: `busctl --user introspect` shows Screenshot,
+  ScreenCast, FileChooser, Settings; `ScreenCast.AvailableSourceTypes` = 1.
+- **File manager** — Thunar with gvfs, `gvfs-smb`, tumbler, `thunar-volman`,
+  `udisks2` (already in the base); archives via `thunar-archive-plugin` +
+  `xarchiver`. Removable media is the test: attach a USB-storage drive to the VM
+  and mount it.
+- **Notifications** — `mako` (wlroots convention) or `dunst` (the SIG's pick);
+  upstream Sway names neither. Decide at the step.
+- **Lock and idle** — `swaylock`, `swayidle`; PAM for swaylock comes with the
+  package. Also decide `org.freedesktop.impl.portal.Inhibit=none` in
+  `sway-portals.conf`: the GTK backend's Inhibit needs GNOME's session manager
+  (xdg-desktop-portal-gtk issue 465); `none` lets Wayland apps fall back to
+  Sway's idle-inhibit protocol. Test with something that inhibits idle.
 - **Output management** — `kanshi`, `wlr-randr`.
 - **Screenshots and clipboard** — `grim`, `slurp`, `wl-clipboard`; `brightnessctl`
-  for the upstream media-key bindings.
+  for the upstream media-key bindings; `wev` for debugging keybindings.
+- **Polkit agent** — the SIG uses `lxqt-policykit` (Qt). We carry GTK 3 and no
+  Qt, so prefer a GTK agent: verify which of `xfce-polkit`, `mate-polkit` are
+  packaged; pick one.
+- **Networking** — NetworkManager is in the base; add `-wifi`, decide
+  `network-manager-applet` (needs a tray — swaybar has one) versus `nmtui` only;
+  VPN plugins as needed. Check `networkmanager-submodules`.
+- **Bluetooth** — BlueZ; `blueman` is the SIG's front-end. Decide at the step.
 - **Flatpak** — `flatpak` plus Flathub. `/var/lib/flatpak` is machine-local under
   bootc, so the remote is added by a one-shot unit at first boot, not at build time.
 - **Autostart model** — Sway does not read `/etc/xdg/autostart` itself, but
@@ -257,10 +316,19 @@ this order:
   runs XDG autostart entries through systemd's generator. Evaluate it against
   plain user units under `sway-session.target`, then apply one model
   consistently (`xdg-user-dirs`, applets).
-- **Fonts** — Noto or DejaVu plus emoji; without them the bar and wmenu show boxes.
-- **Power** — verify whether the F44 base already carries `tuned-ppd` or
-  `power-profiles-daemon`; lid and power-key handling stay with logind.
-- **Printing** — CUPS, where appropriate.
+- **Fonts** — Noto Sans is already in (hard requirement); add emoji and a
+  monospace; check the `fonts` group.
+- **Power** — `tuned-ppd` (the SIG's choice; answers the open question),
+  `tuned-switcher` optional; lid and power-key handling stay with logind.
+- **Secrets** — `gnome-keyring-pam`, `pinentry-gnome3`; verify how the PAM stack
+  picks up `pam_gnome_keyring` under greetd.
+- **Printing** — CUPS, `system-config-printer`; check the `printing` group.
+- **Ecosystem tools batch** — `wlsunset`, `playerctl`, `wev` and similar small
+  tools a personal config may call (§6.1); decide as a set at the end.
+- **Console noise** — without `auditd`, the kernel prints every audit record
+  (each `sudo`) to the serial console. Fedora desktops boot with `quiet`; for a
+  bootc image kernel arguments belong in `/usr/lib/bootc/kargs.d/*.toml`. Small,
+  and a good first use of that mechanism.
 - **Codecs** — the RPM Fusion question becomes unavoidable here. It needs its own
   ADR, not a quiet package addition.
 

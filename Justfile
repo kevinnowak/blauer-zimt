@@ -39,7 +39,9 @@ run-vm:
         -device qemu-xhci \
         -device usb-tablet \
         -display gtk \
-        -serial mon:stdio
+        -serial mon:stdio \
+        -audiodev pa,id=snd0 \
+        -device ich9-intel-hda -device hda-duplex,audiodev=snd0 
 
 # Discard build artifacts (keeps config.toml)
 clean:
