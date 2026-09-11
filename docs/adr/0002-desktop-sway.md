@@ -148,8 +148,8 @@ comparison. §33 applies.
   and not part of the image contract; Flathub is added by a one-shot unit at first
   boot, not at build time.
 - **greetd under SELinux enforcing.** Fedora ships a policy module, `greetd-selinux`,
-  which must be in the image. The development VM enforces, so `ausearch -m AVC` is
-  still the first thing to check when login fails.
+  which must be in the image. The development VM enforces, so AVC denials in the
+  journal are still the first thing to check when login fails.
 - §8's premise — a recognisable, Mint-like desktop — is gone. The default look is
   whatever upstream Sway looks like.
 

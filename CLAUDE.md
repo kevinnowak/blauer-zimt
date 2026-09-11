@@ -1617,16 +1617,17 @@ Do not generate the entire repository architecture without first helping me unde
 Where the project stands:
 
 - Milestone 0 is complete. The base image is decided and recorded in `docs/adr/0001-base-image.md`; the minimal image builds, passes `bootc container lint`, and boots in a VM.
-- The desktop decision — Sway instead of the originally planned Cinnamon — is recorded in `docs/adr/0002-desktop-sway.md`.
+- The desktop decision — Sway instead of the originally planned Cinnamon — is recorded in `docs/adr/0002-desktop-sway.md`. Weak dependencies are not installed: `docs/adr/0003-no-weak-dependencies.md`.
+- Milestone 1 is complete: the VM boots through greetd and tuigreet into a Sway session with upstream configuration, `sway-systemd` wiring and Xwayland.
 - `PLAN.md` is the living roadmap and holds the concrete next steps.
 
 The current task is:
 
-> Help me create the smallest Sway system on the existing base: establish the package set empirically from the base image, install Sway with upstream configuration, configure greetd and tuigreet, wire the systemd user session, switch the development VM to a graphical display, and boot into a usable Sway session (Milestone 1).
+> Help me build the complete desktop foundation on the minimal Sway system (Milestone 2): portals, PipeWire audio, networking, Bluetooth, Thunar and removable media, a polkit agent, notifications, lock and idle, output management, screenshots and clipboard, Flatpak, fonts, power and printing — one component at a time, each named explicitly, each with its own verification in the VM.
 
 I should perform the implementation with Claude's guidance unless I explicitly ask Claude to implement a particular part.
 
-After the minimal Sway VM works, proceed toward the complete desktop foundation (Milestone 2).
+After the desktop foundation works, proceed toward OCI publishing (Milestone 3).
 
 Always optimize for:
 

@@ -12,8 +12,8 @@ The living roadmap: where the project is and what happens next. Decision
 | Milestone | State |
 |---|---|
 | **0 — Architecture and repository foundation** | ✅ Complete (2026-09-09) |
-| **1 — Minimal Sway system** | ▶ Next |
-| 2 — Complete desktop foundation | Not started |
+| **1 — Minimal Sway system** | ✅ Complete (2026-09-11) |
+| **2 — Complete desktop foundation** | ▶ Next |
 | 3 — OCI publishing | Not started |
 | 4 — Update system | Not started |
 | 5 — Workstation and gaming foundation | Not started |
@@ -81,10 +81,11 @@ pinning and a slower local loop.
 `:testing` on every green build, `:stable` promoted after validation. Tag
 conventions get designed once publishing exists (Milestone 3).
 
-## Milestone 1 — Minimal Sway system ▶
+## Milestone 1 — Minimal Sway system ✅
 
-Goal: a VM that boots to a greetd login and into a usable Sway session. Nothing
-else — no applications, gaming or DX tooling until this works.
+Completed 2026-09-11. A VM boots to a greetd login and into a usable Sway session
+— Wayland session type, `sway-systemd` environment, Xwayland, upstream keybindings —
+with nothing else installed.
 
 The rule from Milestone 0 still governs: **one unknown at a time.** The base, the
 disk-image path and the VM invocation are known-good; this milestone adds the
@@ -152,45 +153,79 @@ compositor, the login path and a graphical VM display, in that order.
       `libdecor` → GTK plugin, soname-linked; verify with
       `rpm -q --whatrequires 'libgtk-3.so.0()(64bit)'`), Noto Sans via fontconfig,
       `vulkan-loader` via wlroots, and the SELinux Python tooling via `greetd-selinux`.
-- [ ] **Login: greetd + tuigreet.** The package ships a default
-      `/etc/greetd/config.toml` (running `agreety`); replace its `command` with
-      `tuigreet --sessions /usr/share/wayland-sessions` so the packaged
-      `sway.desktop` is offered, or `tuigreet --cmd sway` to hard-wire it.
-      `systemctl enable greetd` — presets will not — and
-      `systemctl set-default graphical.target`. Understand the model before
-      writing it: greetd owns a VT, runs the greeter as the `greetd` user created
-      by `sysusers.d`, and opens the user session through PAM so logind registers
-      the seat. Name `greetd-selinux` explicitly. Labels are xattrs applied when the
-      image is deployed, so `ls -Z` inside a container built on a host without
-      SELinux prints `?` — ask the *policy* instead: `matchpathcon /usr/bin/greetd`
-      must return a greetd or xdm domain, not `bin_t`, and
-      `grep greetd /etc/selinux/targeted/contexts/files/file_contexts` must match.
-- [ ] **Switch the VM to a graphical display.** `run-vm` is headless on the serial
-      console; Sway needs a DRM device and a window. Add a virtio GPU with GL
-      (`-device virtio-vga-gl -display gtk,gl=on`); keep the serial console for
-      debugging. The host may need `qemu-system-gui`.
-- [ ] **Validate the session.** In order, cheapest first:
-      - greeter appears on VT1; login succeeds
-      - `swaymsg -t get_version` and `swaymsg -t get_outputs` answer
-      - `$mod+Return` opens foot, `$mod+d` opens wmenu — upstream's bindings, upstream's tools
-      - `systemctl --user show-environment | grep WAYLAND_DISPLAY` — proves `sway-systemd` did its job
-      - `loginctl show-session $XDG_SESSION_ID -p Type` reports `wayland`
-      - `sudo ausearch -m AVC -ts recent` is empty
-- [ ] **Record the package set and the erasures** in the Containerfile comments and
-      tick this milestone.
+- [x] **Login: greetd + tuigreet.** Done 2026-09-11. `system_files/etc/greetd/config.toml`
+      (`tuigreet --sessions /usr/share/wayland-sessions`) `COPY`ed after the install
+      line; `systemctl enable greetd.service`. What the packages taught us:
+      `greetd.service`'s `[Install]` is **only `Alias=display-manager.service`**,
+      which `graphical.target` `Wants=`; the base already defaults to
+      `graphical.target`, so no `set-default`; `preset: disabled` confirmed the
+      explicit enable was required; the unit restarts 5× in 30 s, then fails.
+      Verified on a headless boot: `greetd.service` active; the greeter is **not
+      in the service cgroup** — `pam_systemd` (via `/etc/pam.d/greetd-greeter`)
+      moves it into a logind session, and `loginctl` shows it: session `c1`, user
+      `greetd`, class `greeter`, `seat0`, `tty1`, with `tuigreet --sessions …`
+      alive. No AVC denials from greetd or tuigreet.
+- [x] **Switch the VM to a graphical display.** `run-vm` was headless on the
+      serial console; Sway needs a DRM device and a window. Two lessons from the
+      first attempt (2026-09-11): q35 has **no USB bus** until a controller is
+      added (`-device qemu-xhci` before `-device usb-tablet`); and
+      `-device virtio-vga-gl -display gtk,gl=on` **hung QEMU 8.2.2 on the host**
+      (Mint/X11, two AMD GPUs) while it held the X input grab — the desktop looked
+      frozen, but a text VT and `pkill qemu-system-x86_64` would have recovered it.
+      No kernel, amdgpu or Xorg error was logged; host OpenGL was never required.
+      Current invocation: `-device virtio-vga` (2D) and `-display gtk` without GL;
+      the guest renders Sway in software (wlroots falls back to pixman). Keep the
+      serial console for debugging. virgl is a later optimisation, to be retried
+      with `-display sdl,gl=on` or a newer QEMU, with the recovery path known.
+      Third lesson, same day: **`output/OVMF_VARS.fd` is the VM's NVRAM.** On the
+      first boot of a disk, shim's fallback loader writes a "Fedora" boot entry
+      keyed by the ESP's partition GUID; a rebuilt disk has new GUIDs, the entry
+      goes stale, and OVMF drops into the UEFI shell (`bcfg boot dump -v` shows
+      it; `FS0:\EFI\BOOT\BOOTX64.EFI` boots by hand). A disk and its NVRAM belong
+      together: `build-qcow2` resets the VARS file, `run-vm` keeps it between boots
+      of the same disk. Also: virtio-vga's EDID follows the GTK window size, so the
+      preferred mode was 640×480; pin it with `xres`/`yres` on the device.
+      Result: window, getty for a second, tuigreet, login, Sway on `Virtual-1`.
+- [x] **Validate the session.** 2026-09-11, over the serial console while Sway was
+      on screen — one `systemd --user` per user, shared by every session, and
+      `swaymsg -s /run/user/1000/sway-ipc.*.sock …` reaches the compositor from
+      outside it:
+      - greeter on VT1, login, Sway on screen; the greeter session `c1` is torn
+        down and session `2` (`seat0`, `tty1`, class `user`) takes its place
+      - `loginctl show-session 2 -p Type` → **`Type=wayland`** (tuigreet took it
+        from `sway.desktop`)
+      - `systemctl --user show-environment` → **`WAYLAND_DISPLAY=wayland-1`,
+        `XDG_CURRENT_DESKTOP=sway`** — `sway-systemd` works; Milestone 2's
+        portals and PipeWire have what they need
+      - `swaymsg -t get_outputs` → `Virtual-1`, 26 EDID modes; current mode
+        640×480 until `xres`/`yres` are pinned (step 4)
+      - `DISPLAY=:0 xprop -root` → `_NET_SUPPORTING_WM_CHECK` — **Xwayland starts
+        lazily and answers**, which satisfies §19's X11 criterion for free
+      - `journalctl -b --grep=AVC` → nothing but the `bootupctl` noise already
+        recorded; no denial from greetd, tuigreet or Sway
+      - `$mod+Return` opens foot, `$mod+d` opens wmenu — confirmed by eye
+- [x] **Record the package set and the erasures.** No erasures were needed; the
+      rationale for every named package is in the Containerfile's section comments.
 
 Known pitfalls, so they are not rediscovered:
 
 - **greetd under SELinux enforcing.** Fedora ships a policy module
   (`greetd-selinux`); it must be in the image. The VM enforces, so if login fails,
-  read the AVCs (`ausearch -m AVC -ts recent`) before touching anything else.
+  read the AVCs (`journalctl -b --grep=AVC`) before touching anything else.
 - **`sway-systemd` hooks in through `/etc/sway/config.d/`**, which upstream's config
   includes. A personal config that drops the `include` line silently loses portal
   and PipeWire integration. Worth a note in the README once dotfiles matter.
 - Sway version policy is satisfied for free: Fedora 44 ships 1.11, and that is what
   we get. No COPR, no self-built wlroots.
 
-## Milestone 2 — Complete desktop foundation
+## Milestone 2 — Complete desktop foundation ▶
+
+Loop hygiene first, two Justfile one-liners left over from Milestone 1:
+
+- [ ] `build-qcow2` ends with `cp /usr/share/OVMF/OVMF_VARS_4M.fd output/OVMF_VARS.fd`
+      — a new disk gets fresh NVRAM, so no more UEFI shell after a rebuild.
+- [ ] The `run-vm` comment no longer says "headless": it opens a window, and the
+      serial console in the terminal is for debugging.
 
 Sway is a compositor; everything a desktop environment would have bundled is a
 separate decision here. Start by reading the SIG's checklist —
@@ -260,6 +295,16 @@ Tracked with their timing in the deferred-decisions tables of
 - **Weak dependencies** — decided 2026-09-11, off image-wide;
   [ADR 0003](docs/adr/0003-no-weak-dependencies.md). Its cost lands on every
   Milestone 2 item: companions are named, not assumed.
+- **bootupd AVC denials** (development VM; Milestone 4) — every boot logs three
+  denials (`read`, `open`, `getattr`) for `bootupctl` on `/boot/bootupd-state.json`.
+  Full record: `scontext=bootupd_t`, `tcontext=unlabeled_t`, **`permissive=1`** —
+  the `bootupd_t` domain is permissive in Fedora's policy, so the access succeeded
+  and bootupd works. The file is *unlabeled* because it is written by `bootc
+  install` inside the disk-image builder on our host, which has no SELinux; a
+  build on an SELinux host, or a bare-metal install, would label it. Unrelated to
+  the desktop. At Milestone 4 confirm `bootupctl status` works and decide whether
+  the VM build path needs a `restorecon`; at Milestone 9 confirm the file is
+  labelled on real hardware.
 - **Polkit agent and autostart model** (Milestone 2) — the two places where a
   hand-assembled Sway desktop most often ends up subtly broken.
 - **RPM Fusion / non-free codecs** (Milestone 2/5) — still an *unverified* claim that

@@ -11,13 +11,16 @@ Fedora Sway Spin's.
 
 ## Status
 
-**Milestone 0 — Architecture and repository foundation.** Complete.
+**Milestone 1 — Minimal Sway system.** Complete.
 
 The image builds, passes `bootc container lint`, produces a QCOW2 disk image, and
-boots in QEMU/KVM to a valid `bootc status`. It deliberately contains no desktop,
-no Flatpaks, no CI and no signing yet.
+boots in QEMU/KVM to a greetd login and a Sway session — upstream configuration,
+Wayland session type, `sway-systemd` wiring, Xwayland — with 680 packages, every
+one of them either in Fedora's base or named in the `Containerfile`
+([ADR 0003](docs/adr/0003-no-weak-dependencies.md)). No audio, portals, Flatpaks,
+CI or signing yet.
 
-Next: **Milestone 1** — a VM that boots into a usable Sway session.
+Next: **Milestone 2** — the complete desktop foundation. See [PLAN.md](PLAN.md).
 
 ## Architecture
 
@@ -44,14 +47,14 @@ Any Linux host with:
 | Tool | Why |
 |---|---|
 | `podman` | builds the OCI image and runs the disk-image builder |
-| `qemu-system-x86` + `ovmf` | boots the result; OVMF supplies UEFI firmware |
+| `qemu-system-x86` + `qemu-system-gui` + `ovmf` | boots the result in a window; OVMF supplies UEFI firmware |
 | `just` | task runner for the recipes below |
 | `skopeo` | optional — resolves base image digests without pulling |
 
 On a Debian/Ubuntu-family host:
 
 ```bash
-sudo apt install podman just skopeo qemu-system-x86 ovmf
+sudo apt install podman just skopeo qemu-system-x86 qemu-system-gui ovmf
 ```
 
 **Podman must be used rootful.** `bootc-image-builder` bind-mounts
@@ -84,8 +87,11 @@ just build-qcow2
 just run-vm
 ```
 
-The VM boots headless on the serial console. `Ctrl-A` then `X` quits;
-`Ctrl-A` then `C` reaches the QEMU monitor. SSH is forwarded to host port 2222:
+The VM opens a QEMU window: a text login for a second, then tuigreet — log in
+with the account from `config.toml` and pick Sway. The terminal stays attached
+to the serial console for debugging: `Ctrl-A` then `X` quits, `Ctrl-A` then `C`
+reaches the QEMU monitor. Click into the window before using `$mod` (Super);
+`Ctrl-Alt-G` toggles the keyboard grab. SSH is forwarded to host port 2222:
 
 ```bash
 ssh -p 2222 <user>@localhost
@@ -100,6 +106,7 @@ Verify the running system with `sudo bootc status`. It should report
 Containerfile              the image definition
 Justfile                   local build / disk-image / VM recipes
 config.toml.example        template for the local deployment config
+system_files/              files copied into the image, mirroring the root filesystem
 docs/adr/                  architecture decision records
 ```
 
@@ -122,6 +129,18 @@ container still works and remains the documented path; migration is tracked in
 ADR 0001. Its CentOS lineage does not affect the output — it supplies partitioning
 and filesystem scaffolding, while everything OS-specific is done by
 `bootc install to-filesystem` running from inside the Fedora image itself.
+
+**`output/OVMF_VARS.fd` is the VM's NVRAM.** On a disk's first boot, shim's
+fallback loader writes a "Fedora" boot entry into it keyed by the ESP's partition
+GUID. A rebuilt disk has new GUIDs, so stale NVRAM lands you in the UEFI shell;
+`FS0:\EFI\BOOT\BOOTX64.EFI` boots by hand, and a fresh copy of the VARS file
+fixes it for good. A disk and its NVRAM belong together.
+
+**The VM renders in software on purpose.** `-device virtio-vga -display gtk`
+without OpenGL: QEMU 8.2's GTK+GL path (`virtio-vga-gl`, `gl=on`) hung while
+holding the X input grab on an X11 host with two AMD GPUs, which looks like a
+frozen desktop. If that ever happens, Ctrl+Alt+F3, log in, `pkill
+qemu-system-x86_64`, Ctrl+Alt+F7.
 
 **Building on a host without SELinux works.** The builder warns that this is "less
 well tested", but the resulting guest boots with SELinux fully active.

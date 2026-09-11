@@ -35,6 +35,15 @@ RUN dnf -y install \
         greetd greetd-selinux tuigreet \
     && dnf clean all
 
+# --- Login ---------------------------------------------------------------
+# greetd on VT1, tuigreet as the greeter. Copied after the install on purpose:
+# rpm treats a config file that already exists as a local edit and sets it
+# aside as config.toml.rpmorig, installing its own default over it.
+COPY system_files/etc/greetd/config.toml /etc/greetd/config.toml
+# greetd's [Install] is Alias=display-manager.service, which graphical.target
+# Wants=. No target to hook into, no set-default: the base already boots there.
+RUN systemctl enable greetd.service
+
 # --- Validate (§18) -------------------------------------------------------
 # Must be last: it checks the final image, not an intermediate state.
 RUN bootc container lint

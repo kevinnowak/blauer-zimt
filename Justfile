@@ -25,8 +25,9 @@ build-qcow2:
         --rootfs xfs \
         --chown $(id -u):$(id -g) \
         localhost/{{image}}:{{tag}}
+    cp /usr/share/OVMF/OVMF_VARS_4M.fd output/OVMF_VARS.fd
 
-# Boot the QCOW2 headless; Ctrl-A X to quit, Ctrl-A C for the monitor
+# Boot the QCOW2; Ctrl-A X to quit, Ctrl-A C for the monitor
 run-vm:
     [ -f output/OVMF_VARS.fd ] || cp /usr/share/OVMF/OVMF_VARS_4M.fd output/OVMF_VARS.fd
     qemu-system-x86_64 -enable-kvm -m 4096 -smp 4 -cpu host -machine q35 \
@@ -34,7 +35,11 @@ run-vm:
         -drive if=pflash,format=raw,file=output/OVMF_VARS.fd \
         -drive file=output/qcow2/disk.qcow2,if=virtio,format=qcow2 \
         -nic user,model=virtio-net-pci,hostfwd=tcp::2222-:22 \
-        -display none -serial mon:stdio
+        -device virtio-vga,xres=1600,yres=900 \
+        -device qemu-xhci \
+        -device usb-tablet \
+        -display gtk \
+        -serial mon:stdio
 
 # Discard build artifacts (keeps config.toml)
 clean:
