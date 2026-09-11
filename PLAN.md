@@ -288,10 +288,16 @@ audio before portals, because the portal's screencast runs over PipeWire:
   xdg-desktop-portal-gtk grim slurp`; `COPY system_files/ /` replaces the
   single-file copy. Verify: `busctl --user introspect` shows Screenshot,
   ScreenCast, FileChooser, Settings; `ScreenCast.AvailableSourceTypes` = 1.
-- **File manager** — Thunar with gvfs, `gvfs-smb`, tumbler, `thunar-volman`,
-  `udisks2` (already in the base); archives via `thunar-archive-plugin` +
-  `xarchiver`. Removable media is the test: attach a USB-storage drive to the VM
-  and mount it.
+- ✅ **File manager** — done 2026-09-12. Queried: Thunar hard-requires `gvfs` and
+  `tumbler`; `gvfs` hard-requires `udisks2` and `polkit` (both in the base); the
+  Thunar family recommends nothing; `xarchiver` recommends its back ends
+  (`bzip2 xz unzip` are in the base, `zip` and `xdg-utils` were not). gvfs daemons
+  are D-Bus-activated user services. Set: `Thunar thunar-volman
+  thunar-archive-plugin xarchiver zip xdg-utils gvfs gvfs-mtp gvfs-smb gvfs-fuse`
+  (`-gphoto2`, `-archive` optional; `-afc -afp -nfs -goa` out). `run-vm` now
+  attaches a 64 MiB FAT image as `usb-storage` on the xHCI bus. Verified: click in
+  Thunar mounts it at `/run/media/kevin/BZTEST` (vfat, no prompt — udisks2's
+  `allow_active` rule), `gio mount -l` agrees, both gvfs services running, 0 AVCs.
 - **Notifications** — `mako` (wlroots convention) or `dunst` (the SIG's pick);
   upstream Sway names neither. Decide at the step.
 - **Lock and idle** — `swaylock`, `swayidle`; PAM for swaylock comes with the

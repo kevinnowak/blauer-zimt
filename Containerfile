@@ -36,6 +36,8 @@ RUN dnf -y install \
         pipewire pipewire-pulseaudio pipewire-alsa pipewire-utils wireplumber \
         alsa-ucm alsa-utils pavucontrol pulseaudio-utils \
         xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk grim slurp \
+        Thunar thunar-volman thunar-archive-plugin xarchiver zip xdg-utils \
+        gvfs gvfs-mtp gvfs-smb gvfs-fuse \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------

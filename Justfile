@@ -30,6 +30,7 @@ build-qcow2:
 # Boot the QCOW2; Ctrl-A X to quit, Ctrl-A C for the monitor
 run-vm:
     [ -f output/OVMF_VARS.fd ] || cp /usr/share/OVMF/OVMF_VARS_4M.fd output/OVMF_VARS.fd
+    [ -f output/usbstick.img ] || (truncate -s 64M output/usbstick.img && mkfs.vfat -n BZTEST output/usbstick.img)
     qemu-system-x86_64 -enable-kvm -m 4096 -smp 4 -cpu host -machine q35 \
         -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
         -drive if=pflash,format=raw,file=output/OVMF_VARS.fd \
@@ -38,6 +39,8 @@ run-vm:
         -device virtio-vga,xres=1600,yres=900 \
         -device qemu-xhci \
         -device usb-tablet \
+        -drive if=none,id=usbstick,format=raw,file=output/usbstick.img \
+        -device usb-storage,drive=usbstick \
         -display gtk \
         -serial mon:stdio \
         -audiodev pa,id=snd0 \
