@@ -32,7 +32,7 @@ Checked on packages.fedoraproject.org.
 | `sway-config-upstream` | "Upstream configuration for Sway. Includes all important dependencies for a typical desktop system with minimal or no divergence from the upstream." |
 | `sway-config-fedora` | **Separate** source package, 0.4.3-3.fc44 — "Fedora Sway Spin configuration for Sway"; upstream `gitlab.com/fedora/sigs/sway/sway-config-fedora`; related `sddm-wayland-sway`, `initial-setup-gui-wayland-sway` |
 | `sway-systemd` | 0.4.1-4.fc44 — environment propagation into the systemd user session, `sway-session.target`, application scopes; upstream `github.com/alebastr/sway-systemd` |
-| greetd family | `greetd`, `tuigreet`, `gtkgreet` packaged; `regreet` and `wlgreet` are **not** |
+| greetd family | `greetd` (with a `greetd-selinux` policy subpackage), `tuigreet`, `gtkgreet` packaged; `regreet` and `wlgreet` are **not** |
 | Spin identity | `fedora-release-sway` exists and must not be installed |
 | Fedora Sway Atomic | `quay.io/fedora-ostree-desktops/sway-atomic` — same experimental ostree lineage ADR 0001 rejected |
 
@@ -147,8 +147,9 @@ comparison. §33 applies.
 - **Flatpak remotes live in `/var`.** `/var/lib/flatpak` is machine-local under bootc
   and not part of the image contract; Flathub is added by a one-shot unit at first
   boot, not at build time.
-- **greetd under SELinux enforcing** is a reported source of denials. The development
-  VM enforces, so `ausearch -m AVC` is the first thing to check when login fails.
+- **greetd under SELinux enforcing.** Fedora ships a policy module, `greetd-selinux`,
+  which must be in the image. The development VM enforces, so `ausearch -m AVC` is
+  still the first thing to check when login fails.
 - §8's premise — a recognisable, Mint-like desktop — is gone. The default look is
   whatever upstream Sway looks like.
 
@@ -165,16 +166,17 @@ The decision, the digest pin and every implementation note in ADR 0001 stand.
 
 | Decision | When | Note |
 |---|---|---|
-| What `sway-config-upstream` actually pulls in | Milestone 1 | `dnf repoquery --requires sway-config-upstream` from inside the base. Expect foot, wmenu, swaybg, a font, possibly `sway-systemd`; do not assume. |
+| What `sway-config-upstream` actually pulls in | ~~Milestone 1~~ Resolved 2026-09-11 | Requires `sway`, `swaybg`, `sway-wallpapers`, `mesa-dri-drivers`, Xwayland, `polkit`; merely *recommends* `foot`, `wmenu`, `sway-systemd`, `swaylock`, `swayidle`, `grim`. No font. Details in PLAN.md, Milestone 1. |
 | Polkit authentication agent | Milestone 2 | Candidates `xfce-polkit`, `mate-polkit`, `lxqt-policykit`; verify which are packaged. Mounting removable media in an active local session needs none. |
 | Notification daemon | Milestone 2 | `mako` is the wlroots-ecosystem default; `SwayNotificationCenter` is the GTK alternative. |
 | Bluetooth front-end | Milestone 2 | `bluetoothctl` only, or `blueman`. |
 | Power daemon | Milestone 2 | Verify whether the F44 base uses `tuned-ppd` or `power-profiles-daemon`; Fedora Workstation moved to `tuned-ppd` in F41. |
-| Autostart model | Milestone 2 | systemd user units under `sway-session.target` versus `exec` lines in `/etc/sway/config.d/`. |
+| Autostart model | Milestone 2 | systemd user units under `sway-session.target` versus `exec` lines in `/etc/sway/config.d/`. `sway-systemd` ships an opt-in `95-xdg-desktop-autostart.conf` for XDG autostart through systemd. |
 | Bar and status | Milestone 2 / 5 | Stock `swaybar` first. `waybar` only if a tray or richer status is wanted. |
 | Secret service / keyring | Milestone 2 / 5 | `gnome-keyring` if a Flatpak browser or similar needs it. |
 | `steam-devices` udev rules | Milestone 5 | Flatpak Steam needs host-side rules for controllers. |
 | HDR / VRR expectations | Milestone 5 / 9 | VRR is settled; HDR in Sway 1.11 is not. Validate on the AMD target. |
+| Weak dependencies (`install_weak_deps`) | Resolved 2026-09-11 | Off, image-wide — [ADR 0003](0003-no-weak-dependencies.md). The first install had brought 272 packages for 8 named. |
 | Graphical greeter | Open | `gtkgreet` + `cage` if a TUI login proves unwelcome; same daemon, different greeter. |
 
 ## References
