@@ -1,6 +1,9 @@
 # ADR 0001 — Base image: `quay.io/fedora/fedora-bootc`
 
-- **Status:** Accepted
+- **Status:** Accepted — amended 2026-09-11 by [ADR 0002](0002-desktop-sway.md):
+  the target desktop changed from Cinnamon to Sway. The base-image decision and
+  its reasoning are unaffected; the Cinnamon references below are the context as
+  it stood when the decision was made.
 - **Decided:** 2026-09-09
 - **Upstream state verified:** 2026-09-09
 

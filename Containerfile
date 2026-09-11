@@ -1,6 +1,6 @@
 # Blauer Zimt — minimal bootc image (Milestone 0)
 #
-# The §5 layer boundaries (hardware / Cinnamon / common / edition) live as
+# The §5 layer boundaries (hardware / Sway / common / edition) live as
 # commented sections in this single file until Milestone 6 gives us a second
 # consumer worth splitting for.
 

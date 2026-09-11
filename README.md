@@ -1,12 +1,13 @@
 # Blauer Zimt
 
-A Cinnamon-based Fedora [bootc](https://bootc.dev/) workstation image, targeting
+A Sway-based Fedora [bootc](https://bootc.dev/) workstation image, targeting
 modern AMD desktop hardware.
 
 Blauer Zimt adopts the architecture, maintenance philosophy and automation patterns
 of [Project Bluefin](https://projectbluefin.io/) without deriving from it. The base
-is Fedora's own bootc image, and Cinnamon is a first-class desktop from the first
-layer rather than a replacement for GNOME.
+is Fedora's own bootc image, and Sway is a first-class desktop from the first layer
+rather than a replacement for GNOME. The Sway configuration is upstream's, not the
+Fedora Sway Spin's.
 
 ## Status
 
@@ -16,7 +17,7 @@ The image builds, passes `bootc container lint`, produces a QCOW2 disk image, an
 boots in QEMU/KVM to a valid `bootc status`. It deliberately contains no desktop,
 no Flatpaks, no CI and no signing yet.
 
-Next: **Milestone 1** — a VM that boots into a usable Cinnamon session.
+Next: **Milestone 1** — a VM that boots into a usable Sway session.
 
 ## Architecture
 
@@ -28,9 +29,11 @@ quay.io/fedora/fedora-bootc:44      official Fedora bootc base, digest-pinned
 ```
 
 See [ADR 0001](docs/adr/0001-base-image.md) for why this base was chosen, which
-alternatives were rejected, and what that costs us.
+alternatives were rejected, and what that costs us. [ADR 0002](docs/adr/0002-desktop-sway.md)
+records the desktop decision — Sway with upstream configuration — and what changes
+above the base as a result.
 
-The layer boundaries (hardware / Cinnamon / common / edition) currently live as
+The layer boundaries (hardware / Sway / common / edition) currently live as
 commented sections inside a single `Containerfile`. They become separate images
 only when Blauer Zimt DX gives them a second consumer (Milestone 6).
 

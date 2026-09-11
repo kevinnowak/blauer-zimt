@@ -14,7 +14,7 @@ The goal is **not** to create a fork of Bluefin with GNOME removed.
 
 Instead:
 
-> **Blauer Zimt is a Cinnamon-based Fedora bootc workstation that adopts Bluefin's architecture, maintenance philosophy, developer experience, automation patterns, and useful desktop-independent features where appropriate.**
+> **Blauer Zimt is a Sway-based Fedora bootc workstation that adopts Bluefin's architecture, maintenance philosophy, developer experience, automation patterns, and useful desktop-independent features where appropriate.**
 
 The operating system should eventually require very little manual maintenance and should behave like an appliance-style Linux workstation while still providing an excellent software-development environment.
 
@@ -26,9 +26,9 @@ The finished system should provide:
 
 - Fedora as the underlying Linux distribution.
 - An image-based / bootc-based operating system.
-- Cinnamon as the primary and only supported desktop environment.
-- A desktop experience comparable to Fedora Cinnamon Spin or Linux Mint.
-- Mint-X-Aqua styling by default.
+- Sway as the primary and only supported desktop. Sway is a Wayland compositor and window manager, not a desktop environment; the surrounding desktop is assembled from the wlroots ecosystem (see §6).
+- A desktop as complete as the Fedora Sway Spin, but configured like upstream Sway rather than like the Spin.
+- Stock upstream Sway configuration and appearance by default; no theme defaults.
 - Excellent support for modern AMD-based desktop hardware.
 - A good Linux gaming experience.
 - Automated OCI image builds.
@@ -218,6 +218,7 @@ Relevant technologies may include:
 - Mesa
 - Vulkan
 - AMD RADV
+- Xwayland, which is how Steam, Proton and most games run under a Wayland compositor
 - GameMode
 - MangoHud
 - Gamescope
@@ -253,6 +254,8 @@ Mesa
     ↓
 RADV / Vulkan
     ↓
+Sway (Wayland) / Xwayland
+    ↓
 Steam / Proton / native games
 ```
 
@@ -270,8 +273,8 @@ Eventually, a stable Blauer Zimt installation should be able to:
 - provide working Vulkan acceleration
 - provide working hardware-accelerated graphics
 - run Steam
-- run native Linux games
-- run compatible Windows games through Proton
+- run native Linux games, Wayland-native or through Xwayland
+- run compatible Windows games through Proton under Xwayland
 - support common controllers
 - provide working PipeWire audio during games
 - survive normal operating-system image updates without requiring GPU-driver reinstallation
@@ -325,11 +328,13 @@ Do not inherit functionality simply because Bluefin has it.
 
 ---
 
-## 4.3 Cinnamon is a first-class desktop
+## 4.3 Sway is a first-class desktop
 
-Do not treat Cinnamon as an afterthought layered on top of a GNOME workstation.
+Do not treat Sway as an afterthought layered on top of a GNOME workstation or a Fedora Sway Spin derivative.
 
-The system should be architected around Cinnamon from the beginning.
+The system should be architected around a Wayland compositor from the beginning.
+
+There is no Xorg server in the image. X11 applications run through Xwayland, which exists for compatibility only and must not shape the session architecture.
 
 GNOME-specific configuration, extensions, branding, applications, tweaks, and workflows should not be included unless they are required dependencies of functionality that Blauer Zimt actually needs.
 
@@ -363,7 +368,7 @@ The preferred architecture is conceptually:
 Official Fedora bootc-compatible base
                 │
                 ▼
-      Cinnamon workstation layer
+         Sway desktop layer
                 │
                 ▼
        Blauer Zimt common layer
@@ -380,61 +385,76 @@ Such a change should be treated as an architectural decision rather than a routi
 
 ---
 
-# 6. Cinnamon Desktop
+# 6. Sway Desktop
 
-Cinnamon is the supported desktop environment.
+Sway is the supported desktop.
 
-The target experience should be close to the completeness of:
+Sway is a Wayland compositor and window manager, not a desktop environment. A desktop environment bundles a compositor with a session, settings daemon, power manager, panel, screen locker, file manager and portals, all pre-integrated. With Sway, every one of those is a separate component that Blauer Zimt selects and integrates itself.
 
-- Fedora Cinnamon Spin
-- Linux Mint Cinnamon
+The target experience should be close to the completeness of the Fedora Sway Spin, while retaining Fedora and bootc as the operating-system foundation and **upstream Sway's configuration** rather than the Spin's. The Fedora Sway SIG's `sway-config-fedora`, `fedora-release-sway`, `sddm-wayland-sway` and the `sway-desktop` package group are not used; they are studied as a reference for what a complete Fedora Sway desktop contains.
 
-while retaining Fedora and bootc as the operating-system foundation.
+## 6.1 Tools in the image, configuration in dotfiles
+
+A bootc image is immutable and package layering is discouraged. Therefore:
+
+> The image ships the tools. Personal dotfiles ship the configuration.
+
+Every tool a personal Sway configuration may reasonably reference — bar, launcher, terminal, notification daemon, screen locker, screenshot utilities — must already be present in the image. The image's own `/etc/sway/config` is upstream's default configuration, installed through the Fedora `sway-config-upstream` package and left untouched. Personal configuration lives in `~/.config/sway/` and is out of scope for the image (§28).
+
+## 6.2 Required desktop functionality
 
 Required desktop functionality includes, at minimum:
 
-- Cinnamon desktop
-- Cinnamon session
-- display manager
-- Nemo
+- Sway, from the Fedora `sway` package with `sway-config-upstream` named explicitly
+- login: `greetd` with the `tuigreet` greeter
+- systemd user-session integration (`sway-systemd`), so portals, PipeWire and other user services see the compositor
+- terminal, launcher, bar and wallpaper as upstream Sway's defaults (currently foot, wmenu, swaybar and swaybg)
+- notifications
+- screen locking and idle management
+- output management (monitor layout, hotplug)
+- screenshots and clipboard
+- Thunar as the file manager, with gvfs for removable media and trash
 - networking
 - Bluetooth
 - PipeWire audio
-- standard desktop portals
+- standard desktop portals (`xdg-desktop-portal-wlr` for screen capture, `xdg-desktop-portal-gtk` for the rest)
 - power management
 - removable-device support
 - printing support where appropriate
 - common archive and filesystem support
 - Flatpak integration
+- Xwayland for X11 applications
 
-The goal is a fully functional workstation rather than merely installing the `cinnamon` package.
+Where a component is not named above, it is chosen empirically during Milestone 2, preferring upstream Sway's own default first and the wlroots ecosystem's conventional tool second.
+
+The goal is a fully functional workstation rather than merely installing the `sway` package.
 
 ---
 
-# 7. Cinnamon Version Policy
+# 7. Sway Version Policy
 
-"Latest Cinnamon" means:
+"Latest Sway" means:
 
-> The newest Cinnamon version officially supported and packaged for the currently targeted Fedora release.
+> The newest Sway and wlroots versions officially supported and packaged for the currently targeted Fedora release.
 
-Do not independently package newer upstream Cinnamon versions merely because they have been released upstream.
+Do not independently package newer upstream Sway or wlroots versions merely because they have been released upstream. No COPR repositories and no self-built compositor.
 
-Custom Cinnamon packaging should only be considered after an explicit architectural decision.
+Custom Sway or wlroots packaging should only be considered after an explicit architectural decision.
 
 ---
 
 # 8. Desktop Styling
 
-The default desktop should remain recognizably stock Cinnamon rather than becoming heavily branded.
+The default desktop is stock upstream Sway.
 
-Preferred defaults:
+The image ships no theme defaults:
 
-- Desktop environment: Cinnamon
-- GTK/application theme: Mint-X-Aqua
-- Icon theme: Mint-X-Aqua or the corresponding packaged Mint-X icon variant
-- Window decoration: matching Mint-X styling where supported
+- no GTK or application theme (GTK applications use their own default, Adwaita)
+- no icon theme
+- no cursor theme
+- no wallpaper beyond what upstream Sway's own configuration references (`sway-wallpapers`)
 
-Use Fedora-packaged Mint themes and icons whenever possible.
+Appearance is personal configuration and belongs in dotfiles, not in the image (§6.1).
 
 Do not introduce Blauer Zimt-specific colors, logos, wallpapers, themes, or other branding unless explicitly requested later.
 
@@ -452,7 +472,7 @@ The standard workstation edition.
 
 It should contain:
 
-- Cinnamon desktop
+- Sway desktop
 - desktop essentials
 - system configuration
 - Flatpak support
@@ -513,7 +533,7 @@ Use for:
 - operating-system components
 - hardware support
 - GPU drivers and graphics stack
-- Cinnamon
+- Sway and the desktop components listed in §6
 - core system utilities
 - system services
 - components required during boot
@@ -549,7 +569,7 @@ Desktop-independent functionality that clearly benefits Blauer Zimt.
 
 ### Adapt
 
-Useful functionality that needs modification to work properly with Cinnamon or the AMD-focused hardware scope.
+Useful functionality that needs modification to work properly with Sway, a Wayland-only session, or the AMD-focused hardware scope.
 
 ### Reject
 
@@ -559,6 +579,7 @@ Functionality related specifically to:
 - GNOME extensions
 - GNOME-specific tweaks
 - GNOME-specific workflows
+- X11-session-specific functionality (Xorg configuration, xsettings daemons, X11 compositors)
 - Bluefin visual branding
 - Bluefin wallpapers
 - Bluefin logos
@@ -754,9 +775,11 @@ A standard Blauer Zimt image should eventually satisfy at least the following:
 - VM disk image can be generated.
 - VM boots successfully.
 - system reaches the graphical target.
-- display manager starts.
-- Cinnamon session can start.
-- Nemo works.
+- greetd starts and presents a login.
+- Sway session can start.
+- the systemd user session sees the Wayland display (portals and PipeWire can attach).
+- Xwayland runs X11 applications.
+- Thunar works.
 - network connectivity works.
 - PipeWire audio infrastructure is available.
 - Flatpak works.
@@ -873,7 +896,7 @@ The testing channel receives changes before stable.
 It should be used to validate:
 
 - package changes
-- Cinnamon changes
+- Sway and wlroots changes
 - graphics-stack changes
 - system configuration
 - image architecture
@@ -927,7 +950,7 @@ Build validation
         ↓
 VM boot validation
         ↓
-Cinnamon validation
+Sway session validation
         ↓
 AMD graphics validation
         ↓
@@ -972,14 +995,14 @@ The project may manage:
 
 - operating-system image
 - Fedora base
-- Cinnamon desktop
+- Sway desktop
 - AMD CPU/GPU support
 - Mesa and Vulkan stack
 - gaming foundation
 - host packages
 - system services
 - system defaults
-- Cinnamon defaults
+- Sway defaults
 - Flatpak defaults
 - development tooling
 - update configuration
@@ -1177,7 +1200,7 @@ Keep clear boundaries between:
 ```text
 Fedora base
 hardware support
-Cinnamon desktop configuration
+Sway desktop configuration
 Blauer Zimt common functionality
 gaming functionality
 DX functionality
@@ -1194,7 +1217,7 @@ Do not allow DX-specific or gaming-specific requirements to unnecessarily compli
 
 ## 30.10 Avoid unnecessary GNOME coupling
 
-Cinnamon may naturally depend on some GNOME/GTK libraries.
+Sway and its ecosystem tools may naturally depend on some GNOME/GTK libraries.
 
 That is acceptable.
 
@@ -1253,19 +1276,20 @@ A minimal bootc-compatible container image that builds successfully.
 
 ---
 
-## Milestone 1 — Minimal Cinnamon System
+## Milestone 1 — Minimal Sway System
 
 Goals:
 
-- install Cinnamon
+- install Sway with upstream configuration (`sway-config-upstream`)
+- configure login with greetd and tuigreet
+- wire the systemd user session (`sway-systemd`)
 - configure graphical boot
-- configure login/session
-- establish required Cinnamon dependencies
-- generate a VM image
+- establish required Sway dependencies (Mesa, fonts, Xwayland)
+- generate a VM image with a virtio GPU and a graphical display
 
 Deliverable:
 
-A VM that boots into a usable Cinnamon session.
+A VM that boots into a usable Sway session.
 
 Do not add extensive application, gaming, or DX tooling before this works.
 
@@ -1279,11 +1303,14 @@ Goals:
 - audio
 - Bluetooth
 - Flatpak
-- Nemo
+- Thunar
 - portals
 - removable media
+- notifications
+- screen locking and idle management
+- output management
+- screenshots and clipboard
 - desktop integration
-- Mint-X-Aqua defaults
 
 Deliverable:
 
@@ -1362,7 +1389,7 @@ Goals:
 - automatic VM creation
 - automatic boot validation
 - service validation
-- Cinnamon session validation where practical
+- Sway session validation (practical in CI through Sway's headless backend, `WLR_BACKENDS=headless`)
 - upgrade-path testing
 
 Deliverable:
@@ -1395,7 +1422,9 @@ Goals:
 - validate Mesa/Vulkan
 - validate hardware acceleration
 - validate audio
-- validate suspend/resume
+- validate multi-monitor layout and hotplug
+- validate variable refresh rate
+- validate suspend/resume, including locking before sleep
 - validate gaming
 - validate system updates and rollback
 
@@ -1494,7 +1523,8 @@ Blauer Zimt is not intended to become:
 
 - a general-purpose Linux distribution for everyone
 - a replacement for Fedora
-- a Cinnamon fork
+- a Sway fork
+- a Fedora Sway Spin clone
 - a Bluefin fork
 - a heavily customized themed desktop
 - a collection of unsupported bleeding-edge packages
@@ -1517,26 +1547,27 @@ over supporting every possible configuration.
 
 ---
 
-# 34. Existing Reference Project
+# 34. Existing Reference Projects
 
-The following project attempted something related:
+The following projects attempted something related:
 
-https://github.com/Danathar/cinnamon-ublue
+- The Fedora Sway SIG's configuration and packaging: https://gitlab.com/fedora/sigs/sway — in particular `sway-config-fedora`, the Fedora comps `sway-desktop` group, and the Fedora Sway Atomic kickstart.
+- Universal Blue's former `sway` image variant in https://github.com/ublue-os/main, removed in late 2025 and now only visible in git history.
 
-It may be inspected for:
+They may be inspected for:
 
 - lessons learned
-- package requirements
-- Cinnamon-specific integration issues
+- package requirements — what a *complete* Fedora Sway desktop actually contains
+- Sway-specific and Wayland-specific integration issues
 - useful implementation ideas
 
 However:
 
 > Blauer Zimt should be designed independently.
 
-Do not copy the architecture blindly.
+Do not copy the architecture blindly, and do not adopt the Fedora Sway SIG's configuration itself: the package list is the reference, the configuration is not.
 
-If something from that repository is adopted, understand why it works and verify whether it remains appropriate with current Fedora / bootc architecture.
+If something from these repositories is adopted, understand why it works and verify whether it remains appropriate with current Fedora / bootc architecture.
 
 ---
 
@@ -1553,12 +1584,22 @@ Primary references:
 - https://universal-blue.org/
 - https://projectbluefin.io/
 - https://docs.projectbluefin.io/
-- https://fedoraproject.org/spins/cinnamon/
+- https://fedoraproject.org/spins/sway/
+- https://fedoraproject.org/atomic-desktops/sway/
+
+Sway and Wayland ecosystem:
+
+- https://swaywm.org/
+- https://github.com/swaywm/sway/wiki
+- https://gitlab.freedesktop.org/wlroots/wlroots
+- https://sr.ht/~kennylevinsen/greetd/
+- https://github.com/alebastr/sway-systemd
+- https://github.com/emersion/xdg-desktop-portal-wlr
+- https://gitlab.com/fedora/sigs/sway
 
 Additional resources:
 
 - https://blue-build.org/
-- https://github.com/Danathar/cinnamon-ublue
 
 Relevant Red Hat image-mode documentation:
 
@@ -1567,23 +1608,25 @@ Relevant Red Hat image-mode documentation:
 
 ---
 
-# 36. First Task
+# 36. Current Task
 
 Do not start by building the complete operating system.
 
 Do not generate the entire repository architecture without first helping me understand the initial decisions.
 
-The first task should be:
+Where the project stands:
 
-> Investigate and explain the current Fedora and bootc base-image options suitable for building a Cinnamon-oriented, AMD-targeted workstation. Compare the realistic options, recommend one, and explain the reasoning.
+- Milestone 0 is complete. The base image is decided and recorded in `docs/adr/0001-base-image.md`; the minimal image builds, passes `bootc container lint`, and boots in a VM.
+- The desktop decision — Sway instead of the originally planned Cinnamon — is recorded in `docs/adr/0002-desktop-sway.md`.
+- `PLAN.md` is the living roadmap and holds the concrete next steps.
 
-After we decide on the base together:
+The current task is:
 
-> Help me create the smallest possible bootc-compatible image derived from it and establish a reproducible local build process.
+> Help me create the smallest Sway system on the existing base: establish the package set empirically from the base image, install Sway with upstream configuration, configure greetd and tuigreet, wire the systemd user session, switch the development VM to a graphical display, and boot into a usable Sway session (Milestone 1).
 
 I should perform the implementation with Claude's guidance unless I explicitly ask Claude to implement a particular part.
 
-After the minimal image works, proceed toward the first minimal Cinnamon VM.
+After the minimal Sway VM works, proceed toward the complete desktop foundation (Milestone 2).
 
 Always optimize for:
 
