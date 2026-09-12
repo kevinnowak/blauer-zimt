@@ -330,8 +330,14 @@ audio before portals, because the portal's screencast runs over PipeWire:
   Custom modes are reverted on the resulting hotplug. Use *listed* modes
   (`wlr-randr --output Virtual-1 --mode 1024x768`). To try later, in the Justfile:
   `-display sdl`, whose window is created from the guest's first scanout.
-- **Screenshots and clipboard** — `grim`, `slurp`, `wl-clipboard`; `brightnessctl`
-  for the upstream media-key bindings; `wev` for debugging keybindings.
+- ✅ **Screenshots and clipboard** — done 2026-09-13. `grim` and `slurp` came with
+  the portal step. Queried: `wl-clipboard` recommends `mailcap` (`/etc/mime.types`,
+  for typing copied data) and `xdg-utils`; `brightnessctl` requires `systemd >= 243`
+  and ships no udev rule — it uses logind's `SetBrightness`, so the active user
+  needs no group or rule; `wev` needs nothing. Set: `wl-clipboard mailcap
+  brightnessctl wev`. Verified in the VM: `wl-copy`/`wl-paste` round trip, `grim`
+  full-screen PNG, `grim -g "$(slurp)"` region capture, `brightnessctl --list`
+  reaches devices through logind.
 - **Polkit agent** — the SIG uses `lxqt-policykit` (Qt). We carry GTK 3 and no
   Qt, so prefer a GTK agent: verify which of `xfce-polkit`, `mate-polkit` are
   packaged; pick one.

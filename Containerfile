@@ -41,6 +41,7 @@ RUN dnf -y install \
         mako libnotify jq \
         swaylock swayidle \
         kanshi wlr-randr \
+        wl-clipboard mailcap brightnessctl wev \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
