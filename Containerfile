@@ -38,6 +38,7 @@ RUN dnf -y install \
         xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk grim slurp \
         Thunar thunar-volman thunar-archive-plugin xarchiver zip xdg-utils \
         gvfs gvfs-mtp gvfs-smb gvfs-fuse \
+        mako libnotify jq \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------

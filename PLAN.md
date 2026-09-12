@@ -298,8 +298,14 @@ audio before portals, because the portal's screencast runs over PipeWire:
   attaches a 64 MiB FAT image as `usb-storage` on the xHCI bus. Verified: click in
   Thunar mounts it at `/run/media/kevin/BZTEST` (vfat, no prompt — udisks2's
   `allow_active` rule), `gio mount -l` agrees, both gvfs services running, 0 AVCs.
-- **Notifications** — `mako` (wlroots convention) or `dunst` (the SIG's pick);
-  upstream Sway names neither. Decide at the step.
+- ✅ **Notifications** — done 2026-09-12: **mako** (wlroots convention; dunst
+  was the SIG's pick, equally viable). Queried: mako requires `dbus`, `systemd`;
+  recommends `jq`, which `makoctl` needs for `list`/`invoke`/`menu`. D-Bus
+  activation (`fr.emersion.mako.service` → `mako.service`) — no `exec` line.
+  Set: `mako libnotify jq` (`notify-send` is in libnotify). Verified in the VM:
+  mako `inactive` → `notify-send` → bubble on screen → `active`, bus name
+  `org.freedesktop.Notifications` owned by mako under `user@1000.service`;
+  `makoctl list` renders the notification (via jq), `rc=0`.
 - **Lock and idle** — `swaylock`, `swayidle`; PAM for swaylock comes with the
   package. Also decide `org.freedesktop.impl.portal.Inhibit=none` in
   `sway-portals.conf`: the GTK backend's Inhibit needs GNOME's session manager
