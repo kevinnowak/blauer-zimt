@@ -306,11 +306,16 @@ audio before portals, because the portal's screencast runs over PipeWire:
   mako `inactive` → `notify-send` → bubble on screen → `active`, bus name
   `org.freedesktop.Notifications` owned by mako under `user@1000.service`;
   `makoctl list` renders the notification (via jq), `rc=0`.
-- **Lock and idle** — `swaylock`, `swayidle`; PAM for swaylock comes with the
-  package. Also decide `org.freedesktop.impl.portal.Inhibit=none` in
-  `sway-portals.conf`: the GTK backend's Inhibit needs GNOME's session manager
-  (xdg-desktop-portal-gtk issue 465); `none` lets Wayland apps fall back to
-  Sway's idle-inhibit protocol. Test with something that inhibits idle.
+- ✅ **Lock and idle** — done 2026-09-13; all three checks passed in the VM. Queried 2026-09-12: `swaylock` and `swayidle` have no
+  package dependencies and recommend nothing; swaylock ships `/etc/pam.d/swaylock`;
+  upstream's `/etc/sway/config` lines 36–39 carry the commented `swayidle -w
+  timeout … before-sleep …` recipe for dotfiles to enable. Set: `swaylock swayidle`.
+  Plus `org.freedesktop.impl.portal.Inhibit=none` in `sway-portals.conf`
+  (xdg-desktop-portal-gtk issue 465: its Inhibit needs GNOME's session manager;
+  `none` lets Wayland apps fall back to Sway's idle-inhibit protocol). Verify:
+  `swaylock -f` locks and the password unlocks (PAM); `swayidle -w timeout 5 …`
+  locks after five idle seconds; the Inhibit interface is absent from the portal
+  frontend. The positive inhibit test needs a video player — Milestone 5.
 - **Output management** — `kanshi`, `wlr-randr`.
 - **Screenshots and clipboard** — `grim`, `slurp`, `wl-clipboard`; `brightnessctl`
   for the upstream media-key bindings; `wev` for debugging keybindings.

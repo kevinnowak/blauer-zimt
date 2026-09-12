@@ -39,6 +39,7 @@ RUN dnf -y install \
         Thunar thunar-volman thunar-archive-plugin xarchiver zip xdg-utils \
         gvfs gvfs-mtp gvfs-smb gvfs-fuse \
         mako libnotify jq \
+        swaylock swayidle \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
