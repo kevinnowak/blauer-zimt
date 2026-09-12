@@ -40,6 +40,7 @@ RUN dnf -y install \
         gvfs gvfs-mtp gvfs-smb gvfs-fuse \
         mako libnotify jq \
         swaylock swayidle \
+        kanshi wlr-randr \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------

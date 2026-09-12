@@ -316,7 +316,20 @@ audio before portals, because the portal's screencast runs over PipeWire:
   `swaylock -f` locks and the password unlocks (PAM); `swayidle -w timeout 5 …`
   locks after five idle seconds; the Inhibit interface is absent from the portal
   frontend. The positive inhibit test needs a video player — Milestone 5.
-- **Output management** — `kanshi`, `wlr-randr`.
+- ✅ **Output management** — done 2026-09-13: `wlr-randr --mode 1024x768` and a kanshi profile with `1280x1024` both applied in the VM. Queried: `kanshi` and `wlr-randr` have no
+  dependencies and recommend nothing; kanshi ships `kanshi.service`
+  (`WantedBy=graphical-session.target`, `PartOf=graphical-session.target`), so a
+  dotfile enables it as a user unit. Set: `kanshi wlr-randr`. Verified: wlr-randr
+  lists the output; kanshi's unit starts, matches a profile and applies it. Found
+  on the way — **the VM's display size**: QEMU feeds the GTK window size back to
+  the guest as the EDID's preferred mode (kernel: `1920x979` after maximizing),
+  but **wlroots does not re-read modes of a connected output**, so Sway keeps the
+  mode list from its start, where the preferred mode is 640×480 — GTK's initial
+  window size at kernel-probe time. `xres/yres` cannot add a mode to QEMU's fixed
+  EDID catalogue (no 1600×900, no 1280×800 in it), so the M1 "pin" never pinned.
+  Custom modes are reverted on the resulting hotplug. Use *listed* modes
+  (`wlr-randr --output Virtual-1 --mode 1024x768`). To try later, in the Justfile:
+  `-display sdl`, whose window is created from the guest's first scanout.
 - **Screenshots and clipboard** — `grim`, `slurp`, `wl-clipboard`; `brightnessctl`
   for the upstream media-key bindings; `wev` for debugging keybindings.
 - **Polkit agent** — the SIG uses `lxqt-policykit` (Qt). We carry GTK 3 and no
