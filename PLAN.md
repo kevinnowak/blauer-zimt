@@ -338,20 +338,32 @@ audio before portals, because the portal's screencast runs over PipeWire:
   brightnessctl wev`. Verified in the VM: `wl-copy`/`wl-paste` round trip, `grim`
   full-screen PNG, `grim -g "$(slurp)"` region capture, `brightnessctl --list`
   reaches devices through logind.
-- **Polkit agent** — the SIG uses `lxqt-policykit` (Qt). We carry GTK 3 and no
-  Qt, so prefer a GTK agent: verify which of `xfce-polkit`, `mate-polkit` are
-  packaged; pick one.
+- ✅ **Polkit agent** — done 2026-09-14: unit active after login, agent running, `pkexec true` shows the dialog (`rc=0`; cancel → `rc=127`). **`xfce-polkit`** (GTK 3, requires only
+  `polkit`). Fedora packages five agents: `xfce-polkit`, `mate-polkit`, `lxpolkit`
+  (GTK), `lxqt-policykit`, `polkit-kde` (Qt). Its autostart entry carries
+  `OnlyShowIn=XFCE;`, so the XDG generator would skip it under Sway → the image
+  ships `system_files/usr/lib/systemd/user/xfce-polkit.service`
+  (`WantedBy=sway-session.target`, `PartOf=graphical-session.target`), enabled
+  with `systemctl --global enable`. Verify: unit active after login, `pgrep
+  xfce-polkit`, and `pkexec true` from foot shows the password dialog (`rc=0`;
+  cancel → `rc=126`).
 - **Networking** — NetworkManager is in the base; add `-wifi`, decide
   `network-manager-applet` (needs a tray — swaybar has one) versus `nmtui` only;
   VPN plugins as needed. Check `networkmanager-submodules`.
 - **Bluetooth** — BlueZ; `blueman` is the SIG's front-end. Decide at the step.
 - **Flatpak** — `flatpak` plus Flathub. `/var/lib/flatpak` is machine-local under
   bootc, so the remote is added by a one-shot unit at first boot, not at build time.
-- **Autostart model** — Sway does not read `/etc/xdg/autostart` itself, but
-  `sway-systemd` ships an opt-in drop-in, `95-xdg-desktop-autostart.conf`, that
-  runs XDG autostart entries through systemd's generator. Evaluate it against
-  plain user units under `sway-session.target`, then apply one model
-  consistently (`xdg-user-dirs`, applets).
+- ✅ **Autostart model** — decided and verified 2026-09-14 (`sway-xdg-autostart.target`
+  and `xdg-desktop-autostart.target` active after login), with the polkit agent
+  as first customer. Rule 1: XDG autostart entries run through systemd —
+  `/etc/sway/config.d/95-xdg-desktop-autostart.conf` symlinked from
+  sway-systemd's opt-in drop-in, which waits for a tray (`wait-sni-ready`,
+  25 s, then gives up and *skips* autostart) and starts `sway-xdg-autostart.target`
+  → `xdg-desktop-autostart.target` → `app-<name>@autostart.service` per entry,
+  honouring `OnlyShowIn`/`NotShowIn`. Rule 2: session infrastructure whose entry
+  is restricted to another desktop gets an explicit user unit in the image,
+  wanted by `sway-session.target`. Later customers: `nm-applet`, `blueman`,
+  `xdg-user-dirs` (rule 1, check their entries), gnome-keyring (likely rule 2).
 - **Fonts** — Noto Sans is already in (hard requirement); add emoji and a
   monospace; check the `fonts` group.
 - **Power** — `tuned-ppd` (the SIG's choice; answers the open question),

@@ -42,6 +42,7 @@ RUN dnf -y install \
         swaylock swayidle \
         kanshi wlr-randr \
         wl-clipboard mailcap brightnessctl wev \
+        xfce-polkit \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
@@ -53,6 +54,11 @@ COPY system_files/ /
 # Wants=. No target to hook into, no set-default: the base already boots there.
 RUN systemctl enable greetd.service
 
+# Session integration (ADR 0002 §6.1: the image ships it, dotfiles configure it).
+# XDG autostart entries run through systemd via sway-systemd's opt-in drop-in;
+# components whose entries are restricted to another desktop get a unit instead.
+RUN ln -s /usr/share/sway-systemd/95-xdg-desktop-autostart.conf /etc/sway/config.d/ \
+    && systemctl --global enable xfce-polkit.service
 # --- Validate (§18) -------------------------------------------------------
 # Must be last: it checks the final image, not an intermediate state.
 RUN bootc container lint
