@@ -375,8 +375,28 @@ audio before portals, because the portal's screencast runs over PipeWire:
   verification is presence only (no adapter to emulate): daemon active,
   `bluetoothctl show` → no controller, codecs present, applet autostarted.
   Pairing is a Milestone 9 test.
-- **Flatpak** — `flatpak` plus Flathub. `/var/lib/flatpak` is machine-local under
-  bootc, so the remote is added by a one-shot unit at first boot, not at build time.
+- ✅ **Flatpak** — done 2026-09-16: `flatpak-system-repo.service` ran on first
+  boot, unprivileged `flatpak remotes` shows only `flathub`, `remote-ls` answers.
+  (A oneshot without `RemainAfterExit=` reads `inactive (dead)` after running.)
+  Queried 2026-09-15. `flatpak` hard-requires `flatpak-selinux`
+  (conditional on the targeted policy; named anyway), `appstream`, and via
+  `malcontent-libs` → `accountsservice` (its `%post` enables `accounts-daemon`).
+  Remotes: `/etc/flatpak/remotes.d/*.flatpakrepo` is Flatpak's preconfigured-remote
+  mechanism — image-native, no `/var` write, no first-boot unit — so the image
+  ships `system_files/etc/flatpak/remotes.d/flathub.flatpakrepo`, fetched from
+  dl.flathub.org and committed (pins Flathub's GPG key). `fedora-flathub-remote`
+  is rejected: a *filtered* Flathub behind the `fedora-third-party` opt-in.
+  Fedora's own `flatpak-add-fedora-repos.service` (enabled by `%post`) would add
+  the `fedora` remote at first boot; **decided: Flathub only** (Bluefin's practice,
+  §11 Adopt — no "which remote?" prompts), the unit disabled in the Containerfile.
+  Found in the VM: the system repo `/var/lib/flatpak/repo` does not exist until a
+  *privileged* flatpak call creates it, and the preconfigured remote is applied
+  then — an unprivileged `flatpak remotes` shows nothing before that. Fix: the
+  image ships `flatpak-system-repo.service` (oneshot, `ConditionPathExists=
+  !/var/lib/flatpak/repo`, `ExecStart=flatpak remotes --system`), the first
+  "condition on machine-local state" unit. Set: `flatpak flatpak-selinux`.
+  Verify: unit `active (exited)`, unprivileged `flatpak remotes` shows flathub,
+  `remote-ls` answers, no AVCs.
 - ✅ **Autostart model** — decided and verified 2026-09-14 (`sway-xdg-autostart.target`
   and `xdg-desktop-autostart.target` active after login), with the polkit agent
   as first customer. Rule 1: XDG autostart entries run through systemd —

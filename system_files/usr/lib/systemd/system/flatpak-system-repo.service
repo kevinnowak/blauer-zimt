@@ -1,0 +1,14 @@
+# Blauer Zimt — create the Flatpak system repository on first boot so the
+# preconfigured remotes in /etc/flatpak/remotes.d/ exist before first use.
+# /var is machine-local: the image cannot ship the repository itself.
+[Unit]
+Description=Create the Flatpak system repository with its preconfigured remotes
+ConditionPathExists=!/var/lib/flatpak/repo
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flatpak remotes --system
+
+[Install]
+WantedBy=multi-user.target

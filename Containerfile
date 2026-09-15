@@ -44,7 +44,8 @@ RUN dnf -y install \
         wl-clipboard mailcap brightnessctl wev \
         xfce-polkit \
         NetworkManager-wifi wpa_supplicant network-manager-applet \
-	blueman NetworkManager-bluetooth
+	blueman NetworkManager-bluetooth \
+	flatpak flatpak-selinux \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
@@ -60,7 +61,9 @@ RUN systemctl enable greetd.service
 # XDG autostart entries run through systemd via sway-systemd's opt-in drop-in;
 # components whose entries are restricted to another desktop get a unit instead.
 RUN ln -s /usr/share/sway-systemd/95-xdg-desktop-autostart.conf /etc/sway/config.d/ \
-    && systemctl --global enable xfce-polkit.service
+    && systemctl --global enable xfce-polkit.service \
+    && systemctl disable flatpak-add-fedora-repos.service \
+    && systemctl enable flatpak-system-repo.service
 # --- Validate (§18) -------------------------------------------------------
 # Must be last: it checks the final image, not an intermediate state.
 RUN bootc container lint
