@@ -43,6 +43,7 @@ RUN dnf -y install \
         kanshi wlr-randr \
         wl-clipboard mailcap brightnessctl wev \
         xfce-polkit \
+        NetworkManager-wifi wpa_supplicant network-manager-applet \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------

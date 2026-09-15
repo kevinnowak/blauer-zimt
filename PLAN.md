@@ -347,9 +347,21 @@ audio before portals, because the portal's screencast runs over PipeWire:
   with `systemctl --global enable`. Verify: unit active after login, `pgrep
   xfce-polkit`, and `pkexec true` from foot shows the password dialog (`rc=0`;
   cancel → `rc=126`).
-- **Networking** — NetworkManager is in the base; add `-wifi`, decide
-  `network-manager-applet` (needs a tray — swaybar has one) versus `nmtui` only;
-  VPN plugins as needed. Check `networkmanager-submodules`.
+- ✅ **Networking** — done 2026-09-15: `connected`/`full`, Wi-Fi radio `enabled`
+  with `WIFI-HW missing` (VM), supplicant and regdb present, nm-applet running
+  from `app-nm-applet@autostart.service`. Also observed: geoclue2's demo agent
+  autostarts (the Location portal needs an agent; fine) — check
+  `ls /etc/xdg/autostart/` after every package addition. Queried: Base has NetworkManager 1.56 and `-tui`;
+  Fedora's `networkmanager-submodules` group adds `-wifi`, `-bluetooth`, `-wwan`,
+  `wpa_supplicant`, `dnsmasq`. `NetworkManager-wifi` hard-requires
+  `(wpa_supplicant or iwd)` — a rich "either", so the supplicant is named — and
+  `wireless-regdb`. `network-manager-applet` hard-requires `nm-connection-editor`
+  and `libappindicator-gtk3` (its tray item); its autostart entry is
+  `NotShowIn=KDE;GNOME;` → **rule 1**, first customer. Set: `NetworkManager-wifi
+  wpa_supplicant network-manager-applet`. Out until needed: `-wwan`, `-bluetooth`
+  (revisit at Bluetooth), `dnsmasq`, VPN plugins (WireGuard is native). Verify:
+  `nmcli general` connected, Wi-Fi radio enabled, `app-nm-applet@autostart.service`
+  active, icon in swaybar's tray.
 - **Bluetooth** — BlueZ; `blueman` is the SIG's front-end. Decide at the step.
 - **Flatpak** — `flatpak` plus Flathub. `/var/lib/flatpak` is machine-local under
   bootc, so the remote is added by a one-shot unit at first boot, not at build time.

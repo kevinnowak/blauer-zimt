@@ -142,5 +142,14 @@ holding the X input grab on an X11 host with two AMD GPUs, which looks like a
 frozen desktop. If that ever happens, Ctrl+Alt+F3, log in, `pkill
 qemu-system-x86_64`, Ctrl+Alt+F7.
 
+**The VM starts at 640×480; set a listed mode from inside, never resize the
+window.** QEMU feeds the window size back to the guest as its preferred mode, but
+wlroots does not re-read modes of a connected output, so Sway keeps the list it
+saw at start. `wlr-randr --output Virtual-1 --mode 1280x1024` (any mode
+`wlr-randr` lists) resizes the window to match at 1:1. Dragging the window
+instead puts QEMU's GTK display into "free scale", where its pointer mapping for
+the `usb-tablet` device is unreliable — the arrow and the events land in
+different places. **View → Best Fit** undoes that.
+
 **Building on a host without SELinux works.** The builder warns that this is "less
 well tested", but the resulting guest boots with SELinux fully active.
