@@ -362,7 +362,19 @@ audio before portals, because the portal's screencast runs over PipeWire:
   (revisit at Bluetooth), `dnsmasq`, VPN plugins (WireGuard is native). Verify:
   `nmcli general` connected, Wi-Fi radio enabled, `app-nm-applet@autostart.service`
   active, icon in swaybar's tray.
-- **Bluetooth** — BlueZ; `blueman` is the SIG's front-end. Decide at the step.
+- ✅ **Bluetooth** — done 2026-09-15 (presence): `bluetooth.service` enabled and
+  skipped on `ConditionPathIsDirectory=/sys/class/bluetooth` (no adapter), codecs
+  and `bluez-obexd` present, `app-blueman@autostart.service` running. Pairing →
+  Milestone 9. Queried: `bluez` 5.87 is in the base and
+  `bluetooth.service` is enabled. PipeWire's BlueZ plugin is in `pipewire-libs`,
+  which *hard*-requires the codecs (`libsbc`, `libldacBT`, `liblc3`, `libfdk-aac`;
+  no aptX) — present since the audio step. `blueman` requires `bluez-obexd`,
+  `dconf`, Python bindings and the virtual `desktop-notification-daemon`, which
+  mako provides (11 providers exist; dnf keeps the installed one). Its autostart
+  entry is unrestricted → rule 1. Set: `blueman NetworkManager-bluetooth`. VM
+  verification is presence only (no adapter to emulate): daemon active,
+  `bluetoothctl show` → no controller, codecs present, applet autostarted.
+  Pairing is a Milestone 9 test.
 - **Flatpak** — `flatpak` plus Flathub. `/var/lib/flatpak` is machine-local under
   bootc, so the remote is added by a one-shot unit at first boot, not at build time.
 - ✅ **Autostart model** — decided and verified 2026-09-14 (`sway-xdg-autostart.target`

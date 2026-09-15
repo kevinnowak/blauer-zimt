@@ -44,6 +44,7 @@ RUN dnf -y install \
         wl-clipboard mailcap brightnessctl wev \
         xfce-polkit \
         NetworkManager-wifi wpa_supplicant network-manager-applet \
+	blueman NetworkManager-bluetooth
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
