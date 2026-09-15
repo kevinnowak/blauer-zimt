@@ -408,8 +408,21 @@ audio before portals, because the portal's screencast runs over PipeWire:
   is restricted to another desktop gets an explicit user unit in the image,
   wanted by `sway-session.target`. Later customers: `nm-applet`, `blueman`,
   `xdg-user-dirs` (rule 1, check their entries), gnome-keyring (likely rule 2).
-- **Fonts** — Noto Sans is already in (hard requirement); add emoji and a
-  monospace; check the `fonts` group.
+- ✅ **Fonts** — done 2026-09-16: `sans-serif`/`serif`/`monospace`/`emoji` →
+  Noto Sans / Serif / Sans Mono / Color Emoji, 72 font files. **Known
+  limitation:** Fedora's Noto Color Emoji is COLRv1; cairo/pango apps (mako,
+  GTK) render it, foot (fcft 3.3.3) does not — FreeType parses COLRv1 but
+  clients must paint it themselves. Fedora 44 packages no CBDT colour variant
+  (`google-noto-color-emoji-fonts` is COLRv1 only); Milestone 5 candidate: a
+  fontconfig rule preferring the monochrome `google-noto-emoji-fonts` for
+  `monospace`, giving terminals black-and-white emoji. Queried: Before: `serif` → Adwaita Mono, `emoji` → Noto
+  Sans (tofu), `monospace` → Adwaita Mono by accident. Fedora's `fonts` group is
+  `default-fonts-core-*` (sans/serif/mono/emoji/math, Western) + `-cjk-*` +
+  `-other-*` (every other script); each metapackage requires one Noto variable
+  font plus fontconfig rules. Set: `default-fonts-core`. `default-fonts-other`
+  and `default-fonts-cjk` deferred to Milestone 5 (browser tofu test). Verify:
+  `fc-match serif/monospace/emoji` → Noto Serif / Noto Sans Mono / Noto Color
+  Emoji; an emoji renders in foot.
 - **Power** — `tuned-ppd` (the SIG's choice; answers the open question),
   `tuned-switcher` optional; lid and power-key handling stay with logind.
 - **Secrets** — `gnome-keyring-pam`, `pinentry-gnome3`; verify how the PAM stack

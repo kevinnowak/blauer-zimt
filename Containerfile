@@ -46,6 +46,7 @@ RUN dnf -y install \
         NetworkManager-wifi wpa_supplicant network-manager-applet \
 	blueman NetworkManager-bluetooth \
 	flatpak flatpak-selinux \
+	default-fonts-core \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
