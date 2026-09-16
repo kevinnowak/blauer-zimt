@@ -49,6 +49,8 @@ RUN dnf -y install \
 	default-fonts-core \
 	tuned tuned-ppd tuned-switcher upower \
 	gnome-keyring gnome-keyring-pam pinentry-gnome3 libsecret \
+	cups cups-browsed cups-filters-driverless ghostscript nss-mdns ipp-usb \
+	cups-pk-helper system-config-printer system-config-printer-udev \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------

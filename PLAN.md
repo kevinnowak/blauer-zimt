@@ -448,7 +448,21 @@ audio before portals, because the portal's screencast runs over PipeWire:
   `gnome-keyring gnome-keyring-pam pinentry-gnome3 libsecret`. Verify:
   `org.freedesktop.secrets` on the bus, `secret-tool store`/`lookup` with no
   prompt after a tuigreet login, Secret portal interface present.
-- **Printing** — CUPS, `system-config-printer`; check the `printing` group.
+- ✅ **Printing** — done 2026-09-16: `cups.socket` activation, `lpstat -r` scheduler
+  running, web UI 200. A real printer, and drivers if any, at Milestone 9. Queried: `cups` hard-requires `cups-filters` but only
+  recommends `cups-browsed`, `cups-filters-driverless`, `nss-mdns`, `ipp-usb`;
+  `ghostscript` is group-mandatory, not a cups requirement; `system-config-printer`
+  needs `cups-pk-helper` (polkit) to add printers as a user. Set: `cups
+  cups-browsed cups-filters-driverless ghostscript nss-mdns ipp-usb cups-pk-helper
+  system-config-printer system-config-printer-udev`. Deferred to Milestone 9
+  (next to a real printer): `hplip`, `gutenprint`, `foomatic`, `samba-client`,
+  `bluez-cups`, `cups-pdf`, `colord`. Build-time: preset enables `cups.socket` +
+  `cups.path` (activation), leaves `cups.service` and **`cups-browsed` disabled**
+  — kept disabled on purpose (its UDP 631 listener was the 2024 CUPS RCE entry
+  point; libcups discovers IPP Everywhere printers itself); `ipp-usb` is
+  udev-started (`static`); `nss-mdns` added `mdns4_minimal` to nsswitch via
+  authselect. Verify in VM: socket activation on `lpstat -r`, web UI 200,
+  Add-printer polkit dialog.
 - **Ecosystem tools batch** — `wlsunset`, `playerctl`, `wev` and similar small
   tools a personal config may call (§6.1); decide as a set at the end.
 - **Console noise** — without `auditd`, the kernel prints every audit record
@@ -499,6 +513,12 @@ Tracked with their timing in the deferred-decisions tables of
   the desktop. At Milestone 4 confirm `bootupctl status` works and decide whether
   the VM build path needs a `restorecon`; at Milestone 9 confirm the file is
   labelled on real hardware.
+- **tuned `chcon` denials** — understood 2026-09-16, harmless: the decoded
+  command is `chcon -t invalid_bootcinstall_testlabel_t /tmp/…`, bootc's own
+  SELinux probe (it sets a deliberately invalid label; the `mac_admin` denial is
+  the expected answer on an enforcing host). It runs in `tuned_t` because tuned's
+  bootloader plugin calls `bootc` on image-based systems. Expected on every bootc
+  host with tuned; note that tuned can change kernel arguments through bootc.
 - **Polkit agent and autostart model** (Milestone 2) — the two places where a
   hand-assembled Sway desktop most often ends up subtly broken.
 - **RPM Fusion / non-free codecs** (Milestone 2/5) — still an *unverified* claim that
