@@ -423,8 +423,18 @@ audio before portals, because the portal's screencast runs over PipeWire:
   and `default-fonts-cjk` deferred to Milestone 5 (browser tofu test). Verify:
   `fc-match serif/monospace/emoji` → Noto Serif / Noto Sans Mono / Noto Color
   Emoji; an emoji renders in foot.
-- **Power** — `tuned-ppd` (the SIG's choice; answers the open question),
-  `tuned-switcher` optional; lid and power-key handling stay with logind.
+- ✅ **Power** — done 2026-09-16: `net.hadess.PowerProfiles` answers `balanced` with power-saver/balanced/performance, driver `tuned`. Queried: base has no tuned/ppd/upower. `tuned-ppd`
+  requires `tuned`; `tuned-switcher` is a manual tray applet (no autostart);
+  `upower` needs only udev. `/etc/systemd/logind.conf` no longer exists —
+  defaults in `/usr/lib/systemd/logind.conf`, overrides in
+  `/etc/systemd/logind.conf.d/` (systemd ≥ 256). Set: `tuned tuned-ppd
+  tuned-switcher upower`. Verified 2026-09-16: presets enabled all three;
+  `tuned-adm active` → `balanced` (tuned-ppd's profile set overrides VM
+  auto-detection); `upower -e` → DisplayDevice only (QEMU emulates no
+  battery). No `powerprofilesctl` — that CLI is in `power-profiles-daemon`;
+  the `net.hadess.PowerProfiles` D-Bus API is what matters. logind defaults:
+  power key `poweroff`, lid `suspend`, docked `ignore`; overrides, if any, are a
+  Milestone 9 decision.
 - **Secrets** — `gnome-keyring-pam`, `pinentry-gnome3`; verify how the PAM stack
   picks up `pam_gnome_keyring` under greetd.
 - **Printing** — CUPS, `system-config-printer`; check the `printing` group.

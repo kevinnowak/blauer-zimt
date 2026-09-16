@@ -47,6 +47,7 @@ RUN dnf -y install \
 	blueman NetworkManager-bluetooth \
 	flatpak flatpak-selinux \
 	default-fonts-core \
+	tuned tuned-ppd tuned-switcher upower \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
