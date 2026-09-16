@@ -435,8 +435,19 @@ audio before portals, because the portal's screencast runs over PipeWire:
   the `net.hadess.PowerProfiles` D-Bus API is what matters. logind defaults:
   power key `poweroff`, lid `suspend`, docked `ignore`; overrides, if any, are a
   Milestone 9 decision.
-- **Secrets** — `gnome-keyring-pam`, `pinentry-gnome3`; verify how the PAM stack
-  picks up `pam_gnome_keyring` under greetd.
+- ✅ **Secrets** — done 2026-09-16: PAM-started daemon owns `org.freedesktop.secrets`,
+  `secret-tool` round trip with no prompt, Secret portal served. Autostart
+  model re-verified: `OnlyShowIn` entries become `ExecCondition=…systemd-xdg-
+  autostart-condition` and are skipped at start; one xfce-polkit. Queried: Fedora's `/etc/pam.d/greetd` already carries
+  `-auth optional pam_gnome_keyring.so` and `-session optional pam_gnome_keyring.so
+  auto_start` — inert until the module exists, so no PAM edit. `gnome-keyring`
+  requires `gcr3`; ships a user socket + D-Bus activation for
+  `org.freedesktop.secrets` and the Secret portal; its autostart entries are
+  `OnlyShowIn=GNOME;Unity;MATE;` (skipped, and unneeded). `gnome-keyring.portal`
+  is `UseIn=gnome` → `Secret=gnome-keyring` line in `sway-portals.conf`. Set:
+  `gnome-keyring gnome-keyring-pam pinentry-gnome3 libsecret`. Verify:
+  `org.freedesktop.secrets` on the bus, `secret-tool store`/`lookup` with no
+  prompt after a tuigreet login, Secret portal interface present.
 - **Printing** — CUPS, `system-config-printer`; check the `printing` group.
 - **Ecosystem tools batch** — `wlsunset`, `playerctl`, `wev` and similar small
   tools a personal config may call (§6.1); decide as a set at the end.

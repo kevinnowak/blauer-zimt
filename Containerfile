@@ -48,6 +48,7 @@ RUN dnf -y install \
 	flatpak flatpak-selinux \
 	default-fonts-core \
 	tuned tuned-ppd tuned-switcher upower \
+	gnome-keyring gnome-keyring-pam pinentry-gnome3 libsecret \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
