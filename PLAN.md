@@ -13,8 +13,8 @@ The living roadmap: where the project is and what happens next. Decision
 |---|---|
 | **0 — Architecture and repository foundation** | ✅ Complete (2026-09-09) |
 | **1 — Minimal Sway system** | ✅ Complete (2026-09-11) |
-| **2 — Complete desktop foundation** | ▶ Next |
-| 3 — OCI publishing | Not started |
+| **2 — Complete desktop foundation** | ✅ Complete (2026-09-18) |
+| **3 — OCI publishing** | ▶ Next |
 | 4 — Update system | Not started |
 | 5 — Workstation and gaming foundation | Not started |
 | 6 — Blauer Zimt DX | Not started |
@@ -218,7 +218,10 @@ Known pitfalls, so they are not rediscovered:
 - Sway version policy is satisfied for free: Fedora 44 ships 1.11, and that is what
   we get. No COPR, no self-built wlroots.
 
-## Milestone 2 — Complete desktop foundation ▶
+## Milestone 2 — Complete desktop foundation ✅
+
+Completed 2026-09-18. The VM is a usable everyday desktop: every component
+below was queried, named, built and verified one at a time.
 
 Loop hygiene first, two Justfile one-liners left over from Milestone 1 — done
 2026-09-11, commit `7e18398`:
@@ -463,14 +466,44 @@ audio before portals, because the portal's screencast runs over PipeWire:
   udev-started (`static`); `nss-mdns` added `mdns4_minimal` to nsswitch via
   authselect. Verify in VM: socket activation on `lpstat -r`, web UI 200,
   Add-printer polkit dialog.
-- **Ecosystem tools batch** — `wlsunset`, `playerctl`, `wev` and similar small
-  tools a personal config may call (§6.1); decide as a set at the end.
-- **Console noise** — without `auditd`, the kernel prints every audit record
-  (each `sudo`) to the serial console. Fedora desktops boot with `quiet`; for a
-  bootc image kernel arguments belong in `/usr/lib/bootc/kargs.d/*.toml`. Small,
-  and a good first use of that mechanism.
-- **Codecs** — the RPM Fusion question becomes unavoidable here. It needs its own
-  ADR, not a quiet package addition.
+- ✅ **Ecosystem tools batch** — done 2026-09-17, all eight present. Queried 2026-09-16: `wlsunset`, `playerctl`,
+  `swayimg`, `wf-recorder`, `wtype`, `fuzzel`, `i3status` all packaged with
+  trivial dependencies; `i3status` requires `(i3status-config or
+  i3status-config-fedora)` — the `sway-config` pattern again, so
+  `i3status-config` is named. Set: all seven plus `i3status-config` (§6.1: the
+  image ships the tool, the dotfile decides). Verify: `rpm -q`.
+- ✅ **Console noise** — done 2026-09-17. `system_files/usr/lib/bootc/kargs.d/10-console.toml`
+  with `kargs = ["quiet"]`; applied by `bootc install` when the disk was built —
+  `quiet` in `/proc/cmdline`, sudo no longer spams the serial console. Lesson:
+  `kargs.d` acts at install and upgrade, never on an existing deployment until
+  its next `bootc upgrade`; tuned's bootloader plugin is a second writer of the
+  same command line.
+- ✅ **Codecs** — done 2026-09-18, [ADR 0004](docs/adr/0004-multimedia-negativo17.md):
+  Fedora's Mesa omits H.264/HEVC/VC-1 (verified); Flatpak's runtime is `all_free`
+  too (verified); decided for Bluefin's route — negativo17's `fedora-multimedia`,
+  enabled before the main install with priority 90, key committed, sixteen
+  packages version-locked, 44 non-Fedora packages audited. Verified: `h264`/`hevc`
+  decoders present, Sway runs on Mesa 26.2.3, no new denials. `vainfo` on the
+  Radeon is Milestone 9's.
+
+## Milestone 3 — OCI publishing ▶
+
+Goal: a signed Blauer Zimt image in GHCR, built by GitHub Actions on every push,
+so that Milestone 4 has something to update *from*.
+
+- [ ] **Read the reference first.** Bluefin's and ublue's workflows
+      (`.github/workflows/` in `ublue-os/bluefin` and `ublue-os/main`) and the
+      `ublue-os/image-template` — study for structure, adopt only what §21 asks
+      for: pinned actions by commit, minimal `permissions:`, short-lived
+      credentials (`GITHUB_TOKEN` for GHCR, keyless cosign via OIDC or a
+      committed public key).
+- [ ] **A build workflow** that reproduces `just build` in CI: podman/buildah
+      build, `bootc container lint` as the last layer, push to
+      `ghcr.io/<owner>/blauer-zimt:44` plus `:latest`; the negativo17 audit list
+      in the build log (ADR 0004).
+- [ ] **Signing** with cosign; verification documented in the README.
+- [ ] **Renovate** for the base-image digest (ADR 0001) and pinned actions.
+- [ ] Decide the tag scheme (§22) once the first image is published.
 
 ## Verification approach
 
@@ -521,9 +554,9 @@ Tracked with their timing in the deferred-decisions tables of
   host with tuned; note that tuned can change kernel arguments through bootc.
 - **Polkit agent and autostart model** (Milestone 2) — the two places where a
   hand-assembled Sway desktop most often ends up subtly broken.
-- **RPM Fusion / non-free codecs** (Milestone 2/5) — still an *unverified* claim that
-  AMD VA-API H.264/HEVC needs the `-freeworld` swap on Fedora 44. Verify before
-  acting; adding a non-Fedora repository warrants its own ADR.
+- **negativo17 version drift** (from Milestone 3) — the multimedia stack floats on
+  the repository's current state and is not digest-pinned; CI should print the
+  non-Fedora audit list so drift is visible per build (ADR 0004).
 - **Updater choice** (Milestone 4) — stock `bootc-fetch-apply-updates.timer` versus
   `uupd`, decided with rollback behaviour in mind.
 - **Fedora 45** ships 2026-10-20. Under the stabilisation policy it reaches stable

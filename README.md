@@ -11,16 +11,21 @@ Fedora Sway Spin's.
 
 ## Status
 
-**Milestone 1 — Minimal Sway system.** Complete.
+**Milestone 2 — Complete desktop foundation.** Complete.
 
-The image builds, passes `bootc container lint`, produces a QCOW2 disk image, and
-boots in QEMU/KVM to a greetd login and a Sway session — upstream configuration,
-Wayland session type, `sway-systemd` wiring, Xwayland — with 680 packages, every
-one of them either in Fedora's base or named in the `Containerfile`
-([ADR 0003](docs/adr/0003-no-weak-dependencies.md)). No audio, portals, Flatpaks,
-CI or signing yet.
+The VM is a usable everyday desktop: Sway with upstream configuration behind
+greetd/tuigreet; PipeWire audio; desktop portals; Thunar with removable media;
+mako notifications; swaylock/swayidle; kanshi and wlr-randr; screenshots and
+clipboard; a polkit agent and XDG autostart through systemd; Wi-Fi and Bluetooth
+with tray applets; Flatpak with Flathub only; Noto fonts; tuned power profiles;
+gnome-keyring unlocked at login; CUPS. The Mesa stack, libva and ffmpeg come
+from negativo17's `fedora-multimedia` repository for hardware H.264/HEVC
+([ADR 0004](docs/adr/0004-multimedia-negativo17.md)). Every package is either in
+Fedora's base or named in the `Containerfile`
+([ADR 0003](docs/adr/0003-no-weak-dependencies.md)). No CI, publishing or signing
+yet.
 
-Next: **Milestone 2** — the complete desktop foundation. See [PLAN.md](PLAN.md).
+Next: **Milestone 3** — OCI publishing. See [PLAN.md](PLAN.md).
 
 ## Architecture
 
