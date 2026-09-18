@@ -1,3 +1,4 @@
 config.toml
 output/
 *.qcow2
+*~

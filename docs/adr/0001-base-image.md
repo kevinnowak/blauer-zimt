@@ -140,7 +140,7 @@ rediscovered.
 
 | Decision | When | Note |
 |---|---|---|
-| RPM Fusion / non-free codecs | Milestone 2/5 | Reported that F44's stock `mesa-va-drivers` lacks H.264/H.265 and the `-freeworld` swap is required for AMD VA-API. **Unverified — confirm directly.** Adding a non-Fedora repository warrants its own ADR. |
+| RPM Fusion / non-free codecs | Resolved 2026-09-18 | Verified: Fedora's Mesa omits H.264/HEVC/VC-1. Decided in [ADR 0004](0004-multimedia-negativo17.md): negativo17's `fedora-multimedia` (Bluefin's route), not RPM Fusion. |
 | Updater: `bootc-fetch-apply-updates.timer` vs `uupd` | Milestone 4 | `uupd` also covers Flatpak/Distrobox/Homebrew; the stock timer rolls forward again after a manual rollback. |
 | Migrate to `ghcr.io/osbuild/image-builder` | Milestone 3, or on breakage | Actively maintained, Fedora 44-based, same volume contract. Its bootc path (`--bootc-ref`) is not yet documented, and its README still redirects bootc users to `bootc-image-builder`. |
 | Image signing (cosign / sigstore) | Milestone 3 | |

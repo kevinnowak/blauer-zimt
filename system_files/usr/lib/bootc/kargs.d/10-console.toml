@@ -1,0 +1,4 @@
+# Blauer Zimt - kernel arguments (bootc kargs.d, applied at install and upgrade).
+# quiet: raise the console log level so audit records and boot chatter stay
+# in the journal instead of on the console. What Fedora desktops boot with.
+kargs = ["quiet"]

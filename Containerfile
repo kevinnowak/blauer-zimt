@@ -16,6 +16,14 @@ RUN sed -i \
         -e 's/^VARIANT_ID=.*/VARIANT_ID=blauer-zimt/' \
         /usr/lib/os-release
 
+# --- Third-party repository (ADR 0004) -------------------------------------
+# negativo17's fedora-multimedia, visible before anything is installed so that
+# repository priority decides every overlapping package at first sight. The
+# key is committed; the .repo file has enabled=1, priority=90 and
+# skip_if_unavailable=0 (a build without it must fail, not silently degrade).
+COPY system_files/etc/yum.repos.d/fedora-multimedia.repo /etc/yum.repos.d/
+COPY system_files/etc/pki/rpm-gpg/RPM-GPG-KEY-slaanesh /etc/pki/rpm-gpg/
+
 # --- Build policy ---------------------------------------------------------
 # Weak dependencies (Recommends) are not installed. Every package in this
 # image is either a hard requirement or named in a dnf line below. ADR 0003.
@@ -24,7 +32,9 @@ RUN mkdir -p /etc/dnf/libdnf5.conf.d \
 
 # --- Hardware ------------------------------------------------------------
 # mesa-dri-drivers: Gallium drivers — radeonsi for the target, virgl and
-# llvmpipe for the VM. Vulkan (RADV) waits for a machine that can verify it.
+# llvmpipe for the VM. mesa-vulkan-drivers: RADV. libva + ffmpeg: VA-API and
+# the codec stack. All of these resolve to negativo17's builds (ADR 0004);
+# vulkan-tools and libva-utils are the Milestone 9 probes (vulkaninfo, vainfo).
 #
 # --- Sway ----------------------------------------------------------------
 # The config provider is named explicitly; the resolver must never pick it.
@@ -51,6 +61,8 @@ RUN dnf -y install \
 	gnome-keyring gnome-keyring-pam pinentry-gnome3 libsecret \
 	cups cups-browsed cups-filters-driverless ghostscript nss-mdns ipp-usb \
 	cups-pk-helper system-config-printer system-config-printer-udev \
+	wlsunset playerctl swayimg wf-recorder wtype fuzzel i3status i3status-config \
+        mesa-vulkan-drivers libva libva-utils ffmpeg vulkan-tools \
     && dnf clean all
 
 # --- Login ---------------------------------------------------------------
@@ -58,6 +70,19 @@ RUN dnf -y install \
 # rpm treats a config file that already exists as a local edit and sets it
 # aside as config.toml.rpmorig, installing its own default over it.
 COPY system_files/ /
+
+# --- Version lock (ADR 0004) ----------------------------------------------
+# The Mesa stack, libva, libheif and ffmpeg came from negativo17 above. Lock
+# them so a later dnf transaction in this build (a DX layer, say) can never
+# replace half of the set with Fedora's builds: it fails loudly instead.
+RUN dnf -y install dnf5-plugins \
+    && dnf versionlock add \
+        mesa-dri-drivers mesa-filesystem mesa-libEGL mesa-libGL mesa-libgbm \
+        mesa-vulkan-drivers libva libheif ffmpeg \
+        libavcodec libavformat libavutil libavfilter libavdevice \
+        libswresample libswscale \
+    && dnf clean all
+
 # greetd's [Install] is Alias=display-manager.service, which graphical.target
 # Wants=. No target to hook into, no set-default: the base already boots there.
 RUN systemctl enable greetd.service

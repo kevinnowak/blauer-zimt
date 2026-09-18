@@ -1,0 +1,17 @@
+# negativo17 - Multimedia (ADR 0004). Enabled at build time with priority=90, so
+# every package it also carries (Mesa, libva, libheif, ffmpeg and its libraries)
+# resolves to its builds in the main install — Bluefin's mechanism. Audit what
+# that pulled in with: rpm -qa --qf '%{name} %{vendor}\n' | grep -v Fedora.
+# Key committed at /etc/pki/rpm-gpg/RPM-GPG-KEY-slaanesh, fingerprint
+# 0C5D 0F47 0484 AE2F C40A 9B65 97F3 0089 93E8 909B.
+[fedora-multimedia]
+name=negativo17 - Multimedia
+baseurl=https://negativo17.org/repos/multimedia/fedora-$releasever/$basearch/
+enabled=1
+priority=90
+skip_if_unavailable=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-slaanesh
+repo_gpgcheck=0
+metadata_expire=6h
+type=rpm-md
