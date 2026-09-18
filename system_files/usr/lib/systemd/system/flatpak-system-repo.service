@@ -1,4 +1,4 @@
-# Blauer Zimt — create the Flatpak system repository on first boot so the
+# Blauwind — create the Flatpak system repository on first boot so the
 # preconfigured remotes in /etc/flatpak/remotes.d/ exist before first use.
 # /var is machine-local: the image cannot ship the repository itself.
 [Unit]

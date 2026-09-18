@@ -1,6 +1,6 @@
-# Blauer Zimt — local development recipes
+# Blauwind — local development recipes
 
-image := "blauer-zimt"
+image := "blauwind"
 tag   := "44"
 
 default:

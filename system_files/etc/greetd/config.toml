@@ -1,0 +1,13 @@
+# Blauwind — greetd configuration. greetd(5): the daemon owns a VT, runs
+# the greeter below as `user`, authenticates through PAM (/etc/pam.d/greetd),
+# and starts the chosen session as the logged-in user on the same VT.
+
+[terminal]
+vt = 1
+
+[default_session]
+# tuigreet lists every .desktop file in the sessions directory — currently
+# sway.desktop from sway-config-upstream, whose DesktopNames also become
+# XDG_CURRENT_DESKTOP for the session.
+command = "tuigreet --sessions /usr/share/wayland-sessions"
+user = "greetd"

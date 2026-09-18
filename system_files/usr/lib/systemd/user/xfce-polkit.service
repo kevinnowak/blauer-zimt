@@ -1,4 +1,4 @@
-# Blauer Zimt — polkit authentication agent for the Sway session.
+# Blauwind — polkit authentication agent for the Sway session.
 # xfce-polkit's own autostart entry says OnlyShowIn=XFCE, so the XDG
 # autostart generator skips it under Sway; this unit starts it instead.
 [Unit]

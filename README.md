@@ -1,9 +1,9 @@
-# Blauer Zimt
+# Blauwind
 
 A Sway-based Fedora [bootc](https://bootc.dev/) workstation image, targeting
 modern AMD desktop hardware.
 
-Blauer Zimt adopts the architecture, maintenance philosophy and automation patterns
+Blauwind adopts the architecture, maintenance philosophy and automation patterns
 of [Project Bluefin](https://projectbluefin.io/) without deriving from it. The base
 is Fedora's own bootc image, and Sway is a first-class desktop from the first layer
 rather than a replacement for GNOME. The Sway configuration is upstream's, not the
@@ -33,7 +33,7 @@ Next: **Milestone 3** — OCI publishing. See [PLAN.md](PLAN.md).
 quay.io/fedora/fedora-bootc:44      official Fedora bootc base, digest-pinned
               │
               ▼
-     localhost/blauer-zimt:44
+     localhost/blauwind:44
 ```
 
 See [ADR 0001](docs/adr/0001-base-image.md) for why this base was chosen, which
@@ -43,7 +43,7 @@ above the base as a result.
 
 The layer boundaries (hardware / Sway / common / edition) currently live as
 commented sections inside a single `Containerfile`. They become separate images
-only when Blauer Zimt DX gives them a second consumer (Milestone 6).
+only when Blauwind DX gives them a second consumer (Milestone 6).
 
 ## Requirements
 
@@ -103,7 +103,7 @@ ssh -p 2222 <user>@localhost
 ```
 
 Verify the running system with `sudo bootc status`. It should report
-`localhost/blauer-zimt:44` and the digest of the image you just built.
+`localhost/blauwind:44` and the digest of the image you just built.
 
 ## Repository layout
 
@@ -116,6 +116,10 @@ docs/adr/                  architecture decision records
 ```
 
 ## Notes worth knowing
+
+**The project was Blauer Zimt until 2026-09-18.** Renamed with the desktop
+decision — [ADR 0005](docs/adr/0005-name-blauwind.md). ADRs 0001–0004 keep the
+old name where they say it; they are records, not living documents.
 
 **Credentials belong to the deployment, not the image.** A bootc image contains
 no user accounts by design — the same bytes deploy everywhere. Identity is

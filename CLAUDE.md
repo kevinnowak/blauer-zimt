@@ -1,8 +1,8 @@
-# Project Blauer Zimt
+# Project Blauwind
 
 ## 1. Project Overview
 
-**Blauer Zimt** is a personal Linux operating system image intended to become my primary daily-driver operating system for both personal use and professional software engineering.
+**Blauwind** is a personal Linux operating system image intended to become my primary daily-driver operating system for both personal use and professional software engineering.
 
 The project is inspired by:
 
@@ -14,7 +14,7 @@ The goal is **not** to create a fork of Bluefin with GNOME removed.
 
 Instead:
 
-> **Blauer Zimt is a Sway-based Fedora bootc workstation that adopts Bluefin's architecture, maintenance philosophy, developer experience, automation patterns, and useful desktop-independent features where appropriate.**
+> **Blauwind is a Sway-based Fedora bootc workstation that adopts Bluefin's architecture, maintenance philosophy, developer experience, automation patterns, and useful desktop-independent features where appropriate.**
 
 The operating system should eventually require very little manual maintenance and should behave like an appliance-style Linux workstation while still providing an excellent software-development environment.
 
@@ -51,7 +51,7 @@ The system should be maintainable with as little manual intervention as reasonab
 
 # 3. Project Context, Hardware Target, Gaming, and Learning Model
 
-Blauer Zimt is primarily a **personal learning project**.
+Blauwind is primarily a **personal learning project**.
 
 It is not merely an attempt to produce a finished operating-system image as quickly as possible.
 
@@ -61,7 +61,7 @@ Understanding how the system works is one of the main goals of the project.
 
 ## 3.1 Learning Project
 
-I am the primary developer and implementer of Blauer Zimt.
+I am the primary developer and implementer of Blauwind.
 
 Claude Code should primarily act as:
 
@@ -108,7 +108,7 @@ When providing implementation guidance, explain:
 
 Do not hide important complexity behind large generated solutions when a smaller educational step would be more useful.
 
-The goal is that I should understand the architecture and major implementation decisions of Blauer Zimt rather than merely possessing AI-generated configuration files.
+The goal is that I should understand the architecture and major implementation decisions of Blauwind rather than merely possessing AI-generated configuration files.
 
 ---
 
@@ -150,7 +150,7 @@ Do not unnecessarily simplify explanations merely to move faster.
 
 ## 3.3 Target Hardware
 
-Blauer Zimt is primarily intended for modern **AMD-based x86-64 desktop and laptop hardware**.
+Blauwind is primarily intended for modern **AMD-based x86-64 desktop and laptop hardware**.
 
 The expected hardware configuration is:
 
@@ -195,7 +195,7 @@ Do not add complexity solely for:
 
 This is an intentional scope decision.
 
-Reducing hardware scope allows Blauer Zimt to remain simpler and easier to understand and maintain.
+Reducing hardware scope allows Blauwind to remain simpler and easier to understand and maintain.
 
 If some generic functionality incidentally also works on NVIDIA hardware, that is acceptable, but NVIDIA compatibility should not influence architectural decisions unless this scope is explicitly changed later.
 
@@ -203,7 +203,7 @@ If some generic functionality incidentally also works on NVIDIA hardware, that i
 
 ## 3.5 Gaming
 
-Blauer Zimt should be a capable Linux gaming system in addition to being a software-development workstation.
+Blauwind should be a capable Linux gaming system in addition to being a software-development workstation.
 
 Gaming is a supported use case, not an accidental side effect.
 
@@ -269,7 +269,7 @@ One deliberate exception, recorded in `docs/adr/0004-multimedia-negativo17.md`: 
 
 ## 3.7 Gaming Acceptance Goal
 
-Eventually, a stable Blauer Zimt installation should be able to:
+Eventually, a stable Blauwind installation should be able to:
 
 - detect a supported AMD GPU correctly
 - provide working Vulkan acceleration
@@ -287,7 +287,7 @@ Gaming-specific automated testing may be limited, but major graphics regressions
 
 # 4. Guiding Philosophy
 
-Blauer Zimt should follow these principles.
+Blauwind should follow these principles.
 
 ## 4.1 Prefer upstream solutions
 
@@ -324,7 +324,7 @@ Bluefin should be studied heavily for:
 
 However, Bluefin functionality must not be copied blindly.
 
-Every feature should be evaluated according to whether it makes sense for Blauer Zimt.
+Every feature should be evaluated according to whether it makes sense for Blauwind.
 
 Do not inherit functionality simply because Bluefin has it.
 
@@ -338,7 +338,7 @@ The system should be architected around a Wayland compositor from the beginning.
 
 There is no Xorg server in the image. X11 applications run through Xwayland, which exists for compatibility only and must not shape the session architecture.
 
-GNOME-specific configuration, extensions, branding, applications, tweaks, and workflows should not be included unless they are required dependencies of functionality that Blauer Zimt actually needs.
+GNOME-specific configuration, extensions, branding, applications, tweaks, and workflows should not be included unless they are required dependencies of functionality that Blauwind actually needs.
 
 ---
 
@@ -360,7 +360,7 @@ The long-term maintainability of the system is more important than having every 
 
 # 5. Base Operating System
 
-Blauer Zimt should be based as directly as practical on official Fedora bootc-compatible / Atomic infrastructure.
+Blauwind should be based as directly as practical on official Fedora bootc-compatible / Atomic infrastructure.
 
 Do not base the project on an entire Bluefin desktop image merely to remove GNOME afterward.
 
@@ -373,10 +373,10 @@ Official Fedora bootc-compatible base
          Sway desktop layer
                 │
                 ▼
-       Blauer Zimt common layer
+       Blauwind common layer
           ┌─────┴─────┐
           ▼           ▼
-    Blauer Zimt   Blauer Zimt DX
+    Blauwind   Blauwind DX
 ```
 
 The exact Fedora base image should be chosen according to current Fedora and bootc best practices.
@@ -391,7 +391,7 @@ Such a change should be treated as an architectural decision rather than a routi
 
 Sway is the supported desktop.
 
-Sway is a Wayland compositor and window manager, not a desktop environment. A desktop environment bundles a compositor with a session, settings daemon, power manager, panel, screen locker, file manager and portals, all pre-integrated. With Sway, every one of those is a separate component that Blauer Zimt selects and integrates itself.
+Sway is a Wayland compositor and window manager, not a desktop environment. A desktop environment bundles a compositor with a session, settings daemon, power manager, panel, screen locker, file manager and portals, all pre-integrated. With Sway, every one of those is a separate component that Blauwind selects and integrates itself.
 
 The target experience should be close to the completeness of the Fedora Sway Spin, while retaining Fedora and bootc as the operating-system foundation and **upstream Sway's configuration** rather than the Spin's. The Fedora Sway SIG's `sway-config-fedora`, `fedora-release-sway`, `sddm-wayland-sway` and the `sway-desktop` package group are not used; they are studied as a reference for what a complete Fedora Sway desktop contains.
 
@@ -458,7 +458,7 @@ The image ships no theme defaults:
 
 Appearance is personal configuration and belongs in dotfiles, not in the image (§6.1).
 
-Do not introduce Blauer Zimt-specific colors, logos, wallpapers, themes, or other branding unless explicitly requested later.
+Do not introduce Blauwind-specific colors, logos, wallpapers, themes, or other branding unless explicitly requested later.
 
 Functional project naming inside the operating system is acceptable, but visual branding should remain minimal.
 
@@ -468,7 +468,7 @@ Functional project naming inside the operating system is acceptable, but visual 
 
 The project should produce two main operating-system editions.
 
-## 9.1 Blauer Zimt
+## 9.1 Blauwind
 
 The standard workstation edition.
 
@@ -488,16 +488,16 @@ This should be suitable for general daily use.
 
 ---
 
-## 9.2 Blauer Zimt DX
+## 9.2 Blauwind DX
 
-Blauer Zimt DX is the developer-focused edition.
+Blauwind DX is the developer-focused edition.
 
-It should extend the normal Blauer Zimt image rather than being maintained as a completely independent operating system.
+It should extend the normal Blauwind image rather than being maintained as a completely independent operating system.
 
 Conceptually:
 
 ```text
-Blauer Zimt DX = Blauer Zimt + Developer Experience Layer
+Blauwind DX = Blauwind + Developer Experience Layer
 ```
 
 Potential DX functionality includes:
@@ -567,7 +567,7 @@ Bluefin features should be divided conceptually into:
 
 ### Adopt
 
-Desktop-independent functionality that clearly benefits Blauer Zimt.
+Desktop-independent functionality that clearly benefits Blauwind.
 
 ### Adapt
 
@@ -586,7 +586,7 @@ Functionality related specifically to:
 - Bluefin wallpapers
 - Bluefin logos
 - Bluefin-specific desktop styling
-- NVIDIA-specific functionality that is irrelevant to Blauer Zimt
+- NVIDIA-specific functionality that is irrelevant to Blauwind
 
 When evaluating a significant Bluefin feature, prefer documenting which of these categories it belongs to.
 
@@ -730,7 +730,7 @@ VM testing should become increasingly automated as the project matures.
 
 # 17. Installer ISO
 
-The eventual project deliverable should include a bootable ISO that can install Blauer Zimt on bare metal.
+The eventual project deliverable should include a bootable ISO that can install Blauwind on bare metal.
 
 Initially, this means an **installer ISO**, not necessarily a Linux Mint-style live desktop ISO.
 
@@ -741,11 +741,11 @@ Boot ISO
    ↓
 Installer starts
    ↓
-Install Blauer Zimt to disk
+Install Blauwind to disk
    ↓
 Reboot
    ↓
-System boots into Blauer Zimt
+System boots into Blauwind
 ```
 
 A full live desktop environment running directly from the ISO is outside the initial project scope unless explicitly added later.
@@ -770,7 +770,7 @@ An image should not be published as stable if fundamental bootc validation fails
 
 # 19. Minimum Functional Acceptance Criteria
 
-A standard Blauer Zimt image should eventually satisfy at least the following:
+A standard Blauwind image should eventually satisfy at least the following:
 
 - OCI image builds successfully.
 - bootc image validation succeeds.
@@ -856,11 +856,11 @@ for both editions.
 Conceptually:
 
 ```text
-blauer-zimt:stable
-blauer-zimt:testing
+blauwind:stable
+blauwind:testing
 
-blauer-zimt-dx:stable
-blauer-zimt-dx:testing
+blauwind-dx:stable
+blauwind-dx:testing
 ```
 
 Additional Fedora-version-specific tags may be used.
@@ -868,8 +868,8 @@ Additional Fedora-version-specific tags may be used.
 For example:
 
 ```text
-blauer-zimt:44
-blauer-zimt:45
+blauwind:44
+blauwind:45
 ```
 
 Exact tag conventions should be designed once the first working publishing pipeline exists.
@@ -911,7 +911,7 @@ Important updates should spend sufficient time in testing before promotion to st
 
 # 25. Automatic Operating-System Updates
 
-Blauer Zimt should eventually update automatically with minimal user intervention.
+Blauwind should eventually update automatically with minimal user intervention.
 
 The intended experience is:
 
@@ -937,7 +937,7 @@ Automatic update behavior should favor reliability over immediate deployment.
 
 # 26. Fedora Major-Version Upgrade Policy
 
-Blauer Zimt should track Fedora releases automatically, but stable systems must not upgrade to a new Fedora major version immediately on Fedora release day.
+Blauwind should track Fedora releases automatically, but stable systems must not upgrade to a new Fedora major version immediately on Fedora release day.
 
 A new Fedora version should first be introduced into the testing stream.
 
@@ -946,7 +946,7 @@ Example process:
 ```text
 Fedora N released
         ↓
-Blauer Zimt testing moves to Fedora N
+Blauwind testing moves to Fedora N
         ↓
 Build validation
         ↓
@@ -973,7 +973,7 @@ Stable promotion requires successful validation and no known blocker issues.
 
 A reasonable initial rule is:
 
-> A Fedora major release may be promoted to the Blauer Zimt stable stream no sooner than 14 days after Fedora's release and only after required validation succeeds.
+> A Fedora major release may be promoted to the Blauwind stable stream no sooner than 14 days after Fedora's release and only after required validation succeeds.
 
 This policy can later be adjusted based on real-world experience.
 
@@ -1203,7 +1203,7 @@ Keep clear boundaries between:
 Fedora base
 hardware support
 Sway desktop configuration
-Blauer Zimt common functionality
+Blauwind common functionality
 gaming functionality
 DX functionality
 Flatpak applications
@@ -1331,7 +1331,7 @@ Goals:
 
 Deliverable:
 
-A signed Blauer Zimt image available from the registry.
+A signed Blauwind image available from the registry.
 
 ---
 
@@ -1346,7 +1346,7 @@ Goals:
 
 Deliverable:
 
-A VM can automatically move from one published Blauer Zimt image to another safely.
+A VM can automatically move from one published Blauwind image to another safely.
 
 ---
 
@@ -1364,11 +1364,11 @@ Goals:
 
 Deliverable:
 
-A polished standard Blauer Zimt workstation capable of normal desktop use and Linux gaming on supported AMD hardware.
+A polished standard Blauwind workstation capable of normal desktop use and Linux gaming on supported AMD hardware.
 
 ---
 
-## Milestone 6 — Blauer Zimt DX
+## Milestone 6 — Blauwind DX
 
 Goals:
 
@@ -1380,7 +1380,7 @@ Goals:
 
 Deliverable:
 
-A development-focused Blauer Zimt DX image.
+A development-focused Blauwind DX image.
 
 ---
 
@@ -1406,12 +1406,12 @@ Goals:
 
 - generate installer media
 - boot on VM
-- install Blauer Zimt
+- install Blauwind
 - reboot into installed system
 
 Deliverable:
 
-A working Blauer Zimt installer ISO.
+A working Blauwind installer ISO.
 
 ---
 
@@ -1432,7 +1432,7 @@ Goals:
 
 Deliverable:
 
-Blauer Zimt operates reliably as a daily driver on the intended AMD system.
+Blauwind operates reliably as a daily driver on the intended AMD system.
 
 ---
 
@@ -1463,13 +1463,13 @@ Goals:
 
 Deliverable:
 
-Blauer Zimt follows Fedora major releases with minimal manual maintenance.
+Blauwind follows Fedora major releases with minimal manual maintenance.
 
 ---
 
 # 32. Definition of Success
 
-Blauer Zimt should eventually allow the following workflow:
+Blauwind should eventually allow the following workflow:
 
 ```text
 I develop and understand a change
@@ -1509,11 +1509,11 @@ without requiring three different operating-system setups.
 
 The user should normally not need to manually reinstall the operating system or perform traditional distribution upgrades.
 
-When Fedora releases a new major version, Blauer Zimt should eventually move to it through the same image update mechanism after a controlled stabilization period.
+When Fedora releases a new major version, Blauwind should eventually move to it through the same image update mechanism after a controlled stabilization period.
 
 Equally important:
 
-> By developing Blauer Zimt, I should gain a practical understanding of Fedora, Linux system architecture, containers, bootc, image-based operating systems, systemd, CI/CD, Linux desktop integration, graphics stacks, and software-distribution concepts.
+> By developing Blauwind, I should gain a practical understanding of Fedora, Linux system architecture, containers, bootc, image-based operating systems, systemd, CI/CD, Linux desktop integration, graphics stacks, and software-distribution concepts.
 
 The knowledge gained from building the system is itself a primary project outcome.
 
@@ -1521,7 +1521,7 @@ The knowledge gained from building the system is itself a primary project outcom
 
 # 33. Non-Goals
 
-Blauer Zimt is not intended to become:
+Blauwind is not intended to become:
 
 - a general-purpose Linux distribution for everyone
 - a replacement for Fedora
@@ -1565,7 +1565,7 @@ They may be inspected for:
 
 However:
 
-> Blauer Zimt should be designed independently.
+> Blauwind should be designed independently.
 
 Do not copy the architecture blindly, and do not adopt the Fedora Sway SIG's configuration itself: the package list is the reference, the configuration is not.
 

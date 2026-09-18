@@ -1,4 +1,4 @@
-# Blauer Zimt — Working Plan
+# Blauwind — Working Plan
 
 The living roadmap: where the project is and what happens next. Decision
 *rationale* lives in [`docs/adr/`](docs/adr/), build instructions in the
@@ -17,12 +17,15 @@ The living roadmap: where the project is and what happens next. Decision
 | **3 — OCI publishing** | ▶ Next |
 | 4 — Update system | Not started |
 | 5 — Workstation and gaming foundation | Not started |
-| 6 — Blauer Zimt DX | Not started |
+| 6 — Blauwind DX | Not started |
 | 7 — Automated VM testing | Not started |
 | 8 — Installer ISO | Not started |
 | 9 — Bare-metal AMD validation | Not started |
 | 10 — Stable and testing streams | Not started |
 | 11 — Fedora major upgrade automation | Not started |
+
+**Name:** Blauwind since 2026-09-18 — [ADR 0005](docs/adr/0005-name-blauwind.md);
+Blauer Zimt before that, and still so in ADRs 0001–0004.
 
 **Desktop:** Sway with upstream configuration, decided 2026-09-11 before any desktop
 package was installed — [ADR 0002](docs/adr/0002-desktop-sway.md). The Cinnamon plan
@@ -54,7 +57,7 @@ Build the hierarchy conceptually now, physically later.
 quay.io/fedora/fedora-bootc:44   (digest-pinned)
               │
               ▼
-      blauer-zimt:44
+      blauwind:44
 ```
 
 The layer boundaries (hardware / Sway / common / edition) exist as ordered,
@@ -62,16 +65,16 @@ commented sections and separate package lists *inside* that single file. The sea
 are real and documented; they are simply not image boundaries yet.
 
 **Later** — split when a second consumer exists. The first genuine forcing function
-is Blauer Zimt DX at Milestone 6:
+is Blauwind DX at Milestone 6:
 
 ```
 fedora-bootc:44
       │
       ▼
-blauer-zimt-base      ← hardware + Sway + common
+blauwind-base      ← hardware + Sway + common
       ├─────────────┐
       ▼             ▼
-blauer-zimt    blauer-zimt-dx
+blauwind    blauwind-dx
 ```
 
 Splitting earlier buys nothing and costs a multi-image CI graph, cross-image digest
@@ -141,7 +144,7 @@ compositor, the login path and a graphical VM display, in that order.
       - `emacs-filesystem`, via `desktop-file-utils`.
       This diff is the evidence behind [ADR 0003](docs/adr/0003-no-weak-dependencies.md).
 - [x] **Turn weak dependencies off** — [ADR 0003](docs/adr/0003-no-weak-dependencies.md).
-      Drop-in at `/etc/dnf/libdnf5.conf.d/blauer-zimt.conf`, written before the
+      Drop-in at `/etc/dnf/libdnf5.conf.d/blauwind.conf`, written before the
       install line; `greetd-selinux` named. Rebuilt 2026-09-11:
       `install_weak_deps = 0`; `matchpathcon /usr/bin/greetd` →
       `xdm_exec_t` (greetd is confined like any display manager);
@@ -488,7 +491,7 @@ audio before portals, because the portal's screencast runs over PipeWire:
 
 ## Milestone 3 — OCI publishing ▶
 
-Goal: a signed Blauer Zimt image in GHCR, built by GitHub Actions on every push,
+Goal: a signed Blauwind image in GHCR, built by GitHub Actions on every push,
 so that Milestone 4 has something to update *from*.
 
 - [ ] **Read the reference first.** Bluefin's and ublue's workflows
@@ -499,7 +502,7 @@ so that Milestone 4 has something to update *from*.
       committed public key).
 - [ ] **A build workflow** that reproduces `just build` in CI: podman/buildah
       build, `bootc container lint` as the last layer, push to
-      `ghcr.io/<owner>/blauer-zimt:44` plus `:latest`; the negativo17 audit list
+      `ghcr.io/<owner>/blauwind:44` plus `:latest`; the negativo17 audit list
       in the build log (ADR 0004).
 - [ ] **Signing** with cosign; verification documented in the README.
 - [ ] **Renovate** for the base-image digest (ADR 0001) and pinned actions.
